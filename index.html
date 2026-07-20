@@ -44,7 +44,7 @@
         }
         
         .scroll-kapsayici {
-            max-height: 500px; 
+            max-height: 400px; 
             overflow-y: auto;  
             padding-right: 10px;
         }
@@ -55,34 +55,16 @@
         
         .oyuncu-satiri {
             display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            padding: 15px 10px;
+            justify-content: space-between;
+            padding: 12px 5px;
             border-bottom: 1px solid #444;
+            font-size: 18px;
         }
         .oyuncu-satiri:last-child { border-bottom: none; }
         
-        .oyuncu-baslik {
-            font-size: 20px;
-            margin-bottom: 8px;
-        }
-        
-        .istatistik-kutusu {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            color: #bbb;
-            background-color: #222;
-            padding: 8px;
-            border-radius: 5px;
-        }
-        
-        .istatistik-kutusu b { color: #ffcc00; }
-        
-        .unvan-1 { color: #ffd700; font-weight: bold; animation: parilti 1.5s infinite alternate; }
-        .unvan-2 { color: #c0c0c0; font-weight: bold; }
-        .unvan-3 { color: #cd7f32; font-weight: bold; }
+        .unvan-1 { color: #ffd700; font-weight: bold; animation: parilti 1.5s infinite alternate; font-size: 20px; }
+        .unvan-2 { color: #c0c0c0; font-weight: bold; font-size: 19px; }
+        .unvan-3 { color: #cd7f32; font-weight: bold; font-size: 19px; }
         
         @keyframes parilti {
             from { text-shadow: 0 0 5px #ffd700; }
@@ -97,15 +79,17 @@
     </div>
 
     <div id="icerik">
-        <h1 style="color: #ffcc00; letter-spacing: 2px;">RUBY SATRANÇ TAKIMI</h1>
+        <h1 style="color: #ffcc00; letter-spacing: 2px;">Ruby Satranç Takımı</h1>
         
+        <!-- Orijinal Başlık ve İlk 10 Tablosu -->
         <div class="tablo-kapsayici">
-            <h2 style="border-bottom: 2px solid #ffcc00; padding-bottom: 10px;">🏆 Kulüp Şampiyonları (İlk 10)</h2>
+            <h2 style="border-bottom: 2px solid #ffcc00; padding-bottom: 10px;">⚡ Blitz Sıralaması (İlk 10)</h2>
             <div id="blitz-top10">Veriler Lichess'ten çekiliyor...</div>
         </div>
         
+        <!-- Orijinal Başlık ve Kaydırmalı İlk 100 Tablosu -->
         <div class="tablo-kapsayici">
-            <h2 style="border-bottom: 1px solid #777; padding-bottom: 10px; color: #ccc;">📜 Genel Sıralama (Tüm Takım)</h2>
+            <h2 style="border-bottom: 1px solid #777; padding-bottom: 10px; color: #ccc;">📜 Genel Sıralama (İlk 100)</h2>
             <div id="blitz-top100" class="scroll-kapsayici">Yükleniyor...</div>
         </div>
         
@@ -134,60 +118,27 @@
             veriCekVeSirala();
         });
 
-        // Verileri garantili çeken fonksiyonlar
-        function statCek(oyuncu, kategori) {
-            try { 
-                let puan = oyuncu.perfs[kategori].rating;
-                return puan ? puan : 0;
-            } 
-            catch(e) { return 0; }
-        }
-
-        function macCek(oyuncu) {
-            try { return oyuncu.count.all || 0; } 
-            catch(e) { return 0; }
-        }
-
         function veriCekVeSirala() {
-            // 1. ADIM: Sadece İsimleri Çekiyoruz
-            fetch('https://lichess.org/api/team/ruby-satranc/users', {
-                headers: { 'Accept': 'application/x-ndjson' }
-            })
-            .then(response => {
-                if(!response.ok) throw new Error("Takım verisi alınamadı.");
-                return response.text();
-            })
+            // İsimleri başarıyla çektiğimiz o en temel ve sorunsuz bağlantı yöntemi
+            fetch('https://lichess.org/api/team/ruby-satranc/users')
+            .then(response => response.text())
             .then(text => {
-                let isimler = [];
-                let satirlar = text.trim().split('\n').filter(s => s.trim() !== '');
+                let oyuncular = [];
+                let satirlar = text.trim().split('\n');
+                
                 for(let satir of satirlar) {
                     try { 
-                        let veri = JSON.parse(satir);
-                        if(veri.username) isimler.push(veri.username);
+                        if(satir.trim() !== '') {
+                            oyuncular.push(JSON.parse(satir)); 
+                        }
                     } catch(err) {}
                 }
                 
-                if(isimler.length === 0) throw new Error("Takımda oyuncu bulunamadı.");
-                
-                // 2. ADIM: İsim listesini Lichess'e geri gönderip "Bize tam profilleri (perfs) ver" diyoruz.
-                let sorguIsimleri = isimler.slice(0, 300).join(',');
-                
-                return fetch('https://lichess.org/api/users', {
-                    method: 'POST',
-                    headers: { 
-                        'Accept': 'application/json', 
-                        'Content-Type': 'text/plain' 
-                    },
-                    body: sorguIsimleri
-                });
-            })
-            .then(response => response.json())
-            .then(oyuncular => {
-                // Oyuncuları en iyi puanına göre yüksekten düşüğe sırala
+                // 0 Hatasını düzelttiğimiz basit puan okuma sistemi
                 oyuncular.sort((a, b) => {
-                    let maxA = Math.max(statCek(a, 'blitz'), statCek(a, 'rapid'), statCek(a, 'bullet'));
-                    let maxB = Math.max(statCek(b, 'blitz'), statCek(b, 'rapid'), statCek(b, 'bullet'));
-                    return maxB - maxA; 
+                    let puanA = (a.perfs && a.perfs.blitz && a.perfs.blitz.rating) ? Number(a.perfs.blitz.rating) : 0;
+                    let puanB = (b.perfs && b.perfs.blitz && b.perfs.blitz.rating) ? Number(b.perfs.blitz.rating) : 0;
+                    return puanB - puanA;
                 });
                 
                 let top10HTML = '';
@@ -195,12 +146,8 @@
                 
                 for(let i = 0; i < oyuncular.length; i++) {
                     let oyuncu = oyuncular[i];
-                    let isim = oyuncu.username;
-                    
-                    let blitz = statCek(oyuncu, 'blitz');
-                    let rapid = statCek(oyuncu, 'rapid');
-                    let bullet = statCek(oyuncu, 'bullet');
-                    let mac = macCek(oyuncu);
+                    let isim = oyuncu.username || "Bilinmiyor";
+                    let puan = (oyuncu.perfs && oyuncu.perfs.blitz && oyuncu.perfs.blitz.rating) ? oyuncu.perfs.blitz.rating : 0;
                     
                     let unvan = '';
                     let cssSinifi = '';
@@ -211,26 +158,20 @@
                     
                     let satirKodu = `
                         <div class="oyuncu-satiri ${cssSinifi}">
-                            <div class="oyuncu-baslik">${i+1}. ${unvan}${isim}</div>
-                            <div class="istatistik-kutusu">
-                                <span>⚡ Blitz: <b>${blitz}</b></span>
-                                <span>⏱️ Rapid: <b>${rapid}</b></span>
-                                <span>🚀 Bullet: <b>${bullet}</b></span>
-                                <span>🎮 Toplam Maç: <b>${mac}</b></span>
-                            </div>
+                            <span>${i+1}. ${unvan}${isim}</span>
+                            <span><strong>${puan}</strong> Puan</span>
                         </div>
                     `;
                     
                     if(i < 10) { top10HTML += satirKodu; }
-                    top100HTML += satirKodu; 
+                    if(i < 100) { top100HTML += satirKodu; }
                 }
                 
                 document.getElementById('blitz-top10').innerHTML = top10HTML;
                 document.getElementById('blitz-top100').innerHTML = top100HTML;
             })
             .catch(hata => {
-                document.getElementById('blitz-top10').innerHTML = "Lichess verileri çekilemedi: " + hata.message;
-                document.getElementById('blitz-top100').innerHTML = "Lichess verileri çekilemedi: " + hata.message;
+                document.getElementById('blitz-top10').innerHTML = "Lichess bağlantı hatası.";
             });
         }
     </script>
