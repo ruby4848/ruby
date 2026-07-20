@@ -9,7 +9,7 @@
     <style>
         /* --- MİNİMALİST VE YAKUT TEMASI --- */
         body { 
-            background-color: #0d0d0d; /* Daha derin bir siyah */
+            background-color: #0d0d0d; 
             color: #e0e0e0; 
             font-family: 'Inter', sans-serif; 
             text-align: center; 
@@ -108,9 +108,9 @@
         
         /* --- TURNUVA İSTATİSTİKLERİ ÖZEL TASARIM --- */
         .stat-kutulari { display: flex; gap: 15px; font-size: 14px; font-weight: 600; }
-        .stat-g { color: #4CAF50; } /* Yeşil Galibiyet */
-        .stat-b { color: #888; }    /* Gri Beraberlik */
-        .stat-m { color: #F44336; } /* Kırmızı Mağlubiyet */
+        .stat-g { color: #4CAF50; } 
+        .stat-b { color: #888; }    
+        .stat-m { color: #F44336; } 
         .stat-oran { color: #ff3366; border: 1px solid #ff3366; padding: 2px 6px; border-radius: 5px; }
 
         /* --- TEPEDEKİ MİNİMAL CANLI BUTONU --- */
@@ -148,13 +148,20 @@
             border: 1px solid #333; width: 100%; max-width: 380px;
         }
         
-        /* YouTube Oynatıcıyı Gizlemek İçin Güvenli Sınıf */
-        .youtube-gizli { position: absolute; top: -9999px; left: -9999px; width: 1px; height: 1px; }
+        /* YouTube Oynatıcıyı Gizlemek İçin GÜNCELLENMİŞ Güvenli Sınıf (Şeffaf ama boyutu var) */
+        .youtube-gizli { 
+            position: absolute; 
+            width: 200px; 
+            height: 200px; 
+            opacity: 0; 
+            pointer-events: none; 
+            z-index: -99; 
+        }
     </style>
 </head>
 <body>
 
-    <!-- YOUTUBE OYNATICI (Sistemi bozmaması için özel olarak gizlendi) -->
+    <!-- YOUTUBE OYNATICI (YouTube engellemesin diye şeffaf hale getirildi) -->
     <div id="youtube-player" class="youtube-gizli"></div>
 
     <div id="karsilama">
@@ -168,7 +175,6 @@
         
         <button id="ust-canli-buton">🔴 Canlı Maçları İzle</button>
         
-        <!-- YENİ: TURNUVA İSTATİSTİKLERİ BÖLÜMÜ -->
         <div class="tablo-kapsayici">
             <div class="tablo-baslik">
                 <span>🏆 Kulüp Turnuva İstatistikleri</span>
@@ -188,7 +194,6 @@
         </div>
     </div>
 
-    <!-- CANLI MAÇ MODALI -->
     <div id="canli-modal" class="modal-arkaplan">
         <div class="modal-icerik">
             <span class="kapat-butonu" id="modal-kapat">&times;</span>
@@ -203,8 +208,7 @@
     </div>
 
     <script>
-        // --- TURNUVA VERİLERİ (BURAYI İSTEDİĞİN ZAMAN GÜNCELLEYEBİLİRSİN) ---
-        // Yeni birini eklemek için bir alt satıra kopyalaman yeterli. (g: Galibiyet, b: Beraberlik, m: Mağlubiyet)
+        // --- TURNUVA VERİLERİ (Takımının GERÇEK verilerini buraya girebilirsin) ---
         const turnuvaVerileri = [
             { isim: "Armageddon_Satranc", g: 33, b: 23, m: 13 },
             { isim: "EmanuelLasker61", g: 28, b: 15, m: 8 },
@@ -224,7 +228,7 @@
             player = new YT.Player('youtube-player', {
                 height: '200', width: '200', 
                 videoId: '5qap5aO4i9A', // Rahatlatıcı Satranç Lofi Müziği
-                playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1 }
+                playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': '5qap5aO4i9A' }
             });
         }
 
@@ -240,7 +244,6 @@
 
         // --- TURNUVA TABLOSU OLUŞTURUCU ---
         function turnuvaTablosuOlustur() {
-            // Başarı oranına göre yüksekten düşüğe sırala
             turnuvaVerileri.sort((a, b) => {
                 let oranA = a.g / (a.g + a.b + a.m);
                 let oranB = b.g / (b.g + b.b + b.m);
@@ -318,7 +321,7 @@
             }).catch(hata => {});
         }
 
-        // --- CANLI MAÇ MOTORU VE ÖNBELLEK (CACHE) TEMİZLEYİCİ ---
+        // --- CANLI MAÇ MOTORU ---
         let modal = document.getElementById("canli-modal");
         let btn = document.getElementById("ust-canli-buton");
         let span = document.getElementById("modal-kapat");
@@ -366,8 +369,6 @@
                     macAlani.innerHTML = "<p style='color: #666;'>Sahada kimse yok.</p>";
                 } else {
                     let macHTML = '';
-                    // Cache'i engellemek için url sonuna rastgele bir zaman damgası ekliyoruz
-                    let zamanDamgasi = new Date().getTime(); 
                     
                     for(let oyuncu of aktifMaclar) {
                         let isim = oyuncu.name || oyuncu.id;
@@ -376,7 +377,7 @@
                                 <div style="margin-bottom: 15px;">
                                     <span style="color:#ff3366; font-weight:800; font-size:20px; letter-spacing:1px; text-shadow: 0 0 10px #ff3366;">[RUBY] ${isim}</span> 
                                 </div>
-                                <iframe src="https://lichess.org/embed/${oyuncu.playingId}?theme=dark&bg=dark&v=${zamanDamgasi}" width="100%" height="370" frameborder="0"></iframe>
+                                <iframe src="https://lichess.org/embed/${oyuncu.playingId}?theme=dark&bg=dark" width="100%" height="370" frameborder="0"></iframe>
                                 <a href="https://lichess.org/${oyuncu.playingId}" target="_blank" style="color: #0d0d0d; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 15px; background: #ff3366; padding: 10px 20px; border-radius: 20px; transition: 0.3s;">Dev Ekranda İzle</a>
                             </div>
                         `;
