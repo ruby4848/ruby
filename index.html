@@ -6,28 +6,29 @@
     <title>RUBY Satranç Kulübü</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* --- MİNİMALİST VE YAKUT TEMASI --- */
+        /* --- AYDINLIK, POZİTİF VE MİNİMALİST TEMASI --- */
         body { 
-            background-color: #0a0a0a; 
-            color: #e0e0e0; 
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            color: #2d3436; 
             font-family: 'Inter', sans-serif; 
             text-align: center; 
             margin: 0;
             padding-bottom: 50px;
+            min-height: 100vh;
         }
         
         .neon-ruby {
             color: #ff3366;
             font-weight: 800;
-            letter-spacing: 4px;
+            letter-spacing: 3px;
             text-transform: uppercase;
-            text-shadow: 0 0 5px #ff3366, 0 0 10px #ff3366, 0 0 20px #e0115f, 0 0 40px #e0115f;
-            animation: pulsate 1.5s infinite alternate;
+            text-shadow: 0 4px 10px rgba(255, 51, 102, 0.3);
+            animation: nefes 2s infinite alternate;
         }
         
-        @keyframes pulsate {
-            0% { text-shadow: 0 0 2px #ff3366, 0 0 5px #ff3366; transform: scale(1); }
-            100% { text-shadow: 0 0 10px #ff3366, 0 0 20px #ff3366, 0 0 30px #e0115f; transform: scale(1.02); }
+        @keyframes nefes {
+            0% { transform: scale(1); text-shadow: 0 4px 10px rgba(255, 51, 102, 0.3); }
+            100% { transform: scale(1.02); text-shadow: 0 8px 20px rgba(255, 51, 102, 0.5); }
         }
 
         /* KARŞILAMA EKRANI */
@@ -37,14 +38,14 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: radial-gradient(circle at center, #1a050d 0%, #0a0a0a 100%);
+            background: radial-gradient(circle at center, #ffffff 0%, #f0f2f5 100%);
         }
         
         #giris-butonu { 
             padding: 15px 40px; 
             font-size: 20px; 
             font-weight: 600;
-            background-color: transparent; 
+            background-color: #fff; 
             color: #ff3366; 
             border: 2px solid #ff3366; 
             border-radius: 30px; 
@@ -52,23 +53,26 @@
             transition: all 0.4s ease; 
             margin-top: 40px;
             letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(255, 51, 102, 0.15);
         }
         #giris-butonu:hover { 
             background-color: #ff3366; 
-            color: #0a0a0a; 
-            box-shadow: 0 0 20px #e0115f; 
+            color: #fff; 
+            box-shadow: 0 8px 25px rgba(255, 51, 102, 0.4); 
+            transform: translateY(-2px);
         }
         
         #icerik { display: none; margin-top: 30px; padding: 0 20px; }
         
         /* CANLI MAÇ BUTONU */
         #ust-canli-buton {
-            background-color: rgba(224, 17, 95, 0.1); color: #ff3366; padding: 12px 30px; 
-            font-size: 18px; border: 1px solid #ff3366; border-radius: 30px; cursor: pointer; 
+            background-color: #fff; color: #ff3366; padding: 12px 30px; 
+            font-size: 18px; border: 2px solid #ff3366; border-radius: 30px; cursor: pointer; 
             margin-bottom: 30px; font-weight: 600; transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(255, 51, 102, 0.2);
             animation: nabiz 2s infinite;
         }
-        #ust-canli-buton:hover { background-color: #ff3366; color: #0a0a0a; box-shadow: 0 0 20px #e0115f; animation: none; transform: scale(1.05); }
+        #ust-canli-buton:hover { background-color: #ff3366; color: #fff; animation: none; transform: scale(1.05); }
 
         @keyframes nabiz {
             0% { box-shadow: 0 0 0 0 rgba(255, 51, 102, 0.4); }
@@ -76,7 +80,7 @@
             100% { box-shadow: 0 0 0 0 rgba(255, 51, 102, 0); }
         }
 
-        /* --- YENİ EKLENEN: MİNİMALİST SEKMELER (TAB MENÜ) --- */
+        /* AYDINLIK SEKME MENÜSÜ */
         .sekme-menusu {
             display: flex;
             justify-content: center;
@@ -86,36 +90,37 @@
             max-width: 700px;
         }
         .sekme-butonu {
-            background: rgba(30, 30, 30, 0.6);
-            border: 1px solid #333;
-            color: #aaa;
+            background: #fff;
+            border: 1px solid #ddd;
+            color: #636e72;
             padding: 10px 20px;
             border-radius: 20px;
             cursor: pointer;
             font-weight: 600;
             font-size: 15px;
             transition: 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        .sekme-butonu:hover { color: #fff; border-color: #555; }
+        .sekme-butonu:hover { color: #2d3436; border-color: #aaa; }
         .sekme-butonu.aktif {
-            background: rgba(255, 51, 102, 0.15);
+            background: #fff0f3;
             border-color: #ff3366;
             color: #ff3366;
-            box-shadow: 0 0 10px rgba(224, 17, 95, 0.3);
+            box-shadow: 0 4px 10px rgba(255, 51, 102, 0.15);
         }
 
-        /* TABLO ALANI */
+        /* AYDINLIK TABLO ALANI */
         .tablo-kapsayici {
-            display: none; /* Başlangıçta hepsi gizli, JS ile açılacak */
-            background: rgba(20, 20, 20, 0.6);
+            display: none; 
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(224, 17, 95, 0.2);
+            border: 1px solid rgba(255, 255, 255, 1);
             border-radius: 15px;
             padding: 25px;
             margin: 0 auto 30px auto;
             width: 100%;
             max-width: 700px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
             text-align: left;
             animation: fadin 0.5s ease;
         }
@@ -124,7 +129,7 @@
         @keyframes fadin { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .tablo-baslik {
-            border-bottom: 1px solid rgba(255, 51, 102, 0.3);
+            border-bottom: 2px solid #fff0f3;
             padding-bottom: 12px; margin-bottom: 15px;
             color: #ff3366; font-size: 20px; font-weight: 600;
         }
@@ -136,135 +141,145 @@
         
         .oyuncu-satiri {
             display: flex; justify-content: space-between; padding: 12px 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 16px;
+            border-bottom: 1px solid #f1f2f6; font-size: 16px;
             transition: background 0.2s;
+            color: #2d3436;
+            font-weight: 600;
         }
-        .oyuncu-satiri:hover { background: rgba(255, 51, 102, 0.05); border-radius: 8px; }
+        .oyuncu-satiri:hover { background: #fff0f3; border-radius: 8px; }
         .oyuncu-satiri:last-child { border-bottom: none; }
         
-        .unvan-1 { color: #ff3366; font-weight: bold; font-size: 18px; text-shadow: 0 0 8px #ff3366; }
-        .unvan-2 { color: #c0c0c0; font-weight: bold; font-size: 17px; }
+        .unvan-1 { color: #d4af37; font-weight: bold; font-size: 18px; text-shadow: 0 0 5px rgba(212, 175, 55, 0.5); }
+        .unvan-2 { color: #95a5a6; font-weight: bold; font-size: 17px; }
         .unvan-3 { color: #cd7f32; font-weight: bold; font-size: 17px; }
         
-        .stat-deger { color: #ff3366; font-weight: bold; }
+        .stat-deger { color: #ff3366; font-weight: 800; }
 
-        /* CANLI MAÇ MODALI */
+        /* AYDINLIK CANLI MAÇ MODALI */
         .modal-arkaplan {
             display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(10, 10, 10, 0.95); backdrop-filter: blur(8px); overflow: auto;
+            background-color: rgba(255, 255, 255, 0.9); backdrop-filter: blur(5px); overflow: auto;
         }
         .modal-icerik {
-            background-color: #111; margin: 5% auto; padding: 30px; border: 1px solid rgba(224, 17, 95, 0.4);
-            width: 90%; max-width: 900px; border-radius: 15px; position: relative; box-shadow: 0 0 40px rgba(224, 17, 95, 0.3);
+            background-color: #fff; margin: 5% auto; padding: 30px; border: 1px solid #ff3366;
+            width: 90%; max-width: 900px; border-radius: 15px; position: relative; box-shadow: 0 10px 40px rgba(255, 51, 102, 0.15);
         }
         .kapat-butonu { color: #ff3366; float: right; font-size: 35px; font-weight: 300; cursor: pointer; line-height: 1; }
         .mac-kutusu {
-            background: #1a1a1a; padding: 15px; border-radius: 12px; text-align: center; 
-            border: 1px solid #333; width: 100%; max-width: 380px;
+            background: #f8f9fa; padding: 15px; border-radius: 12px; text-align: center; 
+            border: 1px solid #eee; width: 100%; max-width: 380px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
+        
+        /* YouTube Oynatıcıyı Gizli Tutma */
+        .youtube-gizli { position: absolute; width: 200px; height: 200px; opacity: 0; pointer-events: none; z-index: -99; top: -9999px;}
     </style>
 </head>
 <body>
 
-    <!-- YENİ HTML5 MÜZİK ÇALAR (CHROME BUNU ENGELLEYEMEZ) -->
-    <audio id="bg-music" loop preload="auto">
-        <!-- Harika, sakinleştirici bir satranç Lofi müziği -->
-        <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3" type="audio/mpeg">
-    </audio>
+    <!-- İSTEDİĞİN MÜZİK (YouTube API ile) -->
+    <div id="youtube-player" class="youtube-gizli"></div>
 
     <div id="karsilama">
         <h1 class="neon-ruby" style="font-size: 4rem; margin: 0;">RUBY SATRANÇ</h1>
-        <p style="color: #888; letter-spacing: 2px; margin-top: 10px;">ELİT BİR TOPLULUK</p>
+        <p style="color: #636e72; letter-spacing: 2px; margin-top: 10px; font-weight: 600;">ELİT BİR TOPLULUK</p>
         <button id="giris-butonu">KULÜBE GİRİŞ YAP</button>
     </div>
 
     <div id="icerik">
         <h1 class="neon-ruby" style="font-size: 2.5rem; margin-bottom: 25px;">RUBY SATRANÇ</h1>
         
-        <!-- ANA EYLEM BUTONU -->
         <button id="ust-canli-buton">🔴 Canlı Sahaya Bağlan</button>
         
-        <!-- YENİ: AÇILIR MENÜ (SEKME) BUTONLARI -->
         <div class="sekme-menusu">
-            <button class="sekme-butonu aktif" onclick="sekmeAc('blitz', this)">⚡ Blitz (İlk 10)</button>
-            <button class="sekme-butonu" onclick="sekmeAc('rapid', this)">⏱️ Rapid (İlk 10)</button>
-            <button class="sekme-butonu" onclick="sekmeAc('toplam', this)">🎮 Toplam Maç (İlk 10)</button>
+            <button class="sekme-butonu aktif" onclick="sekmeAc('blitz', this)">⚡ Blitz</button>
+            <button class="sekme-butonu" onclick="sekmeAc('rapid', this)">⏱️ Rapid</button>
+            <button class="sekme-butonu" onclick="sekmeAc('toplam', this)">🎮 Toplam Maç</button>
             <button class="sekme-butonu" onclick="sekmeAc('genel', this)">📜 Genel Liste</button>
         </div>
 
-        <!-- 1. BLİTZ TABLOSU -->
         <div id="blitz" class="tablo-kapsayici aktif-tablo">
-            <div class="tablo-baslik">⚡ Blitz Sıralaması</div>
+            <div class="tablo-baslik">⚡ Blitz Sıralaması (İlk 10)</div>
             <div id="blitz-liste">Veriler Lichess'ten anlık çekiliyor...</div>
         </div>
 
-        <!-- 2. RAPİD TABLOSU -->
         <div id="rapid" class="tablo-kapsayici">
-            <div class="tablo-baslik">⏱️ Rapid Sıralaması</div>
+            <div class="tablo-baslik">⏱️ Rapid Sıralaması (İlk 10)</div>
             <div id="rapid-liste">Veriler Lichess'ten anlık çekiliyor...</div>
         </div>
 
-        <!-- 3. TOPLAM MAÇ TABLOSU -->
         <div id="toplam" class="tablo-kapsayici">
-            <div class="tablo-baslik">🎮 En Çok Maç Yapanlar (Tecrübe)</div>
+            <div class="tablo-baslik">🎮 En Çok Maç Yapanlar (Blitz+Rapid+Bullet)</div>
             <div id="toplam-liste">Veriler Lichess'ten anlık çekiliyor...</div>
         </div>
         
-        <!-- 4. GENEL LİSTE -->
         <div id="genel" class="tablo-kapsayici">
-            <div class="tablo-baslik">📜 Tüm Takım (Blitz Puanına Göre)</div>
+            <div class="tablo-baslik">📜 Tüm Takım Listesi (Blitz Puanına Göre)</div>
             <div id="genel-liste" class="scroll-kapsayici">Yükleniyor...</div>
         </div>
     </div>
 
-    <!-- CANLI MAÇ MODALI -->
     <div id="canli-modal" class="modal-arkaplan">
         <div class="modal-icerik">
             <span class="kapat-butonu" id="modal-kapat">&times;</span>
             <div class="tablo-baslik" style="border-bottom: 1px solid #ff3366; justify-content: center; margin-bottom: 30px;">
                 🔴 SAHADAKİLER
             </div>
-            <div id="modal-yukleniyor" style="color: #888; text-align: center; display: none;">Saha taranıyor...</div>
+            <div id="modal-yukleniyor" style="color: #636e72; text-align: center; display: none; font-weight: bold;">Saha taranıyor...</div>
             <div id="mac-yapanlar-alani" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; margin-bottom: 40px;"></div>
-            <div id="sadece-online-alani" style="border-top: 1px dashed #333; padding-top: 20px; text-align: center;"></div>
+            <div id="sadece-online-alani" style="border-top: 1px dashed #ddd; padding-top: 20px; text-align: center;"></div>
         </div>
     </div>
 
     <script>
-        // --- MÜZİK VE GİRİŞ MOTORU ---
+        // --- YOUTUBE MÜZİK KURULUMU ---
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        var player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('youtube-player', {
+                height: '200', width: '200', 
+                videoId: 'zw1_S10BjSs', // Senin istediğin müzik
+                playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': 'zw1_S10BjSs' }
+            });
+        }
+
+        // --- GİRİŞ BUTONU ---
         document.getElementById('giris-butonu').addEventListener('click', function() {
-            let sarki = document.getElementById('bg-music');
-            sarki.volume = 0.5; // Ses seviyesi yarıya ayarlı (rahatsız etmesin diye)
-            
-            // HTML5 Play komutu Chrome'un engelini aşar çünkü butona "sen" tıkladın.
-            sarki.play().catch(e => console.log("Tarayıcı sesi engelledi.")); 
+            try { 
+                if (player && typeof player.playVideo === 'function') { 
+                    player.setVolume(70);
+                    player.playVideo(); 
+                } 
+            } catch (e) { console.log("Müzik başlatılamadı."); }
             
             document.getElementById('karsilama').style.display = 'none';
             document.getElementById('icerik').style.display = 'block';
-            
-            // Verileri çekmeye başla
             veriCekVeSirala();
         });
 
-        // --- SEKME (TAB) DEĞİŞTİRME MANTIĞI ---
+        // --- SEKME (TAB) DEĞİŞTİRME ---
         function sekmeAc(hedefTabloID, tiklananButon) {
-            // Tüm tabloları gizle
             let tablolar = document.getElementsByClassName("tablo-kapsayici");
-            for (let i = 0; i < tablolar.length; i++) {
-                tablolar[i].classList.remove("aktif-tablo");
-            }
-            // Sadece istenen tabloyu göster
+            for (let i = 0; i < tablolar.length; i++) { tablolar[i].classList.remove("aktif-tablo"); }
             document.getElementById(hedefTabloID).classList.add("aktif-tablo");
 
-            // Butonların renklerini ayarla
             let butonlar = document.getElementsByClassName("sekme-butonu");
-            for (let i = 0; i < butonlar.length; i++) {
-                butonlar[i].classList.remove("aktif");
-            }
+            for (let i = 0; i < butonlar.length; i++) { butonlar[i].classList.remove("aktif"); }
             tiklananButon.classList.add("aktif");
         }
 
-        // --- %100 GERÇEK LİCHESS VERİ MOTORU ---
+        // MAÇ TOPLAMA MATEMATİĞİ (Sıfır Sorununu Çözen Fonksiyon)
+        function toplamMacHesapla(oyuncu) {
+            let blitz = (oyuncu.perfs && oyuncu.perfs.blitz && oyuncu.perfs.blitz.games) ? oyuncu.perfs.blitz.games : 0;
+            let rapid = (oyuncu.perfs && oyuncu.perfs.rapid && oyuncu.perfs.rapid.games) ? oyuncu.perfs.rapid.games : 0;
+            let bullet = (oyuncu.perfs && oyuncu.perfs.bullet && oyuncu.perfs.bullet.games) ? oyuncu.perfs.bullet.games : 0;
+            return blitz + rapid + bullet;
+        }
+
+        // --- GERÇEK LİCHESS VERİ MOTORU ---
         function veriCekVeSirala() {
             fetch('https://lichess.org/api/team/ruby-satranc/users')
             .then(response => response.text())
@@ -274,8 +289,6 @@
                 for(let satir of satirlar) {
                     if(satir.trim() !== '') { try { idListesi.push(JSON.parse(satir).id); } catch(err) {} }
                 }
-                
-                // Lichess API'den tam profilleri çekiyoruz
                 let sorgu = idListesi.slice(0, 300).join(',');
                 return fetch('https://lichess.org/api/users', {
                     method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: sorgu
@@ -283,28 +296,24 @@
             })
             .then(response => response.json())
             .then(oyuncular => {
-                // 1. BLİTZ İÇİN SIRALAMA
+                
                 let blitzSiralama = [...oyuncular].sort((a, b) => {
                     let pA = (a.perfs && a.perfs.blitz && a.perfs.blitz.rating) ? a.perfs.blitz.rating : 0;
                     let pB = (b.perfs && b.perfs.blitz && b.perfs.blitz.rating) ? b.perfs.blitz.rating : 0;
                     return pB - pA;
                 });
 
-                // 2. RAPİD İÇİN SIRALAMA
                 let rapidSiralama = [...oyuncular].sort((a, b) => {
                     let pA = (a.perfs && a.perfs.rapid && a.perfs.rapid.rating) ? a.perfs.rapid.rating : 0;
                     let pB = (b.perfs && b.perfs.rapid && b.perfs.rapid.rating) ? b.perfs.rapid.rating : 0;
                     return pB - pA;
                 });
 
-                // 3. TOPLAM MAÇ (TECRÜBE) İÇİN SIRALAMA
+                // Toplam Maça Göre Sıralama (Yeni Mantık)
                 let macSiralama = [...oyuncular].sort((a, b) => {
-                    let mA = (a.count && a.count.all) ? a.count.all : 0;
-                    let mB = (b.count && b.count.all) ? b.count.all : 0;
-                    return mB - mA;
+                    return toplamMacHesapla(b) - toplamMacHesapla(a);
                 });
 
-                // Ekrana Basma Fonksiyonu (Daha temiz kod için)
                 function listeOlustur(liste, limit, kategori) {
                     let html = '';
                     let gosterilecekSayi = Math.min(liste.length, limit);
@@ -317,7 +326,7 @@
                         let birim = "Puan";
                         if(kategori === 'blitz') { deger = (oyuncu.perfs && oyuncu.perfs.blitz && oyuncu.perfs.blitz.rating) ? oyuncu.perfs.blitz.rating : 0; }
                         else if(kategori === 'rapid') { deger = (oyuncu.perfs && oyuncu.perfs.rapid && oyuncu.perfs.rapid.rating) ? oyuncu.perfs.rapid.rating : 0; }
-                        else if(kategori === 'toplam') { deger = (oyuncu.count && oyuncu.count.all) ? oyuncu.count.all : 0; birim = "Maç"; }
+                        else if(kategori === 'toplam') { deger = toplamMacHesapla(oyuncu); birim = "Oyun"; }
                         
                         let unvan = ''; let cssSinifi = '';
                         if(i === 0) { unvan = '👑 '; cssSinifi = 'unvan-1'; }
@@ -327,21 +336,20 @@
                         html += `
                             <div class="oyuncu-satiri ${cssSinifi}">
                                 <span>${i+1}. ${unvan}${isim}</span>
-                                <span class="stat-deger">${deger} <span style="color:#888; font-size:12px; font-weight:normal;">${birim}</span></span>
+                                <span class="stat-deger">${deger} <span style="color:#b2bec3; font-size:12px; font-weight:normal;">${birim}</span></span>
                             </div>
                         `;
                     }
                     return html;
                 }
 
-                // Listeleri HTML'e gönder
                 document.getElementById('blitz-liste').innerHTML = listeOlustur(blitzSiralama, 10, 'blitz');
                 document.getElementById('rapid-liste').innerHTML = listeOlustur(rapidSiralama, 10, 'rapid');
                 document.getElementById('toplam-liste').innerHTML = listeOlustur(macSiralama, 10, 'toplam');
                 document.getElementById('genel-liste').innerHTML = listeOlustur(blitzSiralama, 100, 'blitz');
 
             }).catch(hata => {
-                let hataMsj = "<p style='color:red;'>Veriler çekilemedi.</p>";
+                let hataMsj = "<p style='color:#ff3366; font-weight:bold;'>Veriler Lichess'ten çekilemedi.</p>";
                 document.getElementById('blitz-liste').innerHTML = hataMsj;
                 document.getElementById('rapid-liste').innerHTML = hataMsj;
                 document.getElementById('toplam-liste').innerHTML = hataMsj;
@@ -349,7 +357,7 @@
             });
         }
 
-        // --- CANLI MAÇ MOTORU (GİZLİ KİLİT AÇIK) ---
+        // --- CANLI MAÇ MOTORU ---
         let modal = document.getElementById("canli-modal");
         let btn = document.getElementById("ust-canli-buton");
         let span = document.getElementById("modal-kapat");
@@ -388,7 +396,7 @@
                 let onlineKisiler = durumlar.filter(kisi => kisi.online && !kisi.playingId);
                 
                 if(aktifMaclar.length === 0) {
-                    macAlani.innerHTML = "<p style='color: #666;'>Sahada kimse yok.</p>";
+                    macAlani.innerHTML = "<p style='color: #636e72; font-weight:bold;'>Sahada kimse yok.</p>";
                 } else {
                     let macHTML = '';
                     let zamanDamgasi = new Date().getTime(); 
@@ -397,10 +405,10 @@
                         macHTML += `
                             <div class="mac-kutusu">
                                 <div style="margin-bottom: 15px;">
-                                    <span style="color:#ff3366; font-weight:800; font-size:20px; letter-spacing:1px; text-shadow: 0 0 10px #ff3366;">[RUBY] ${isim}</span> 
+                                    <span style="color:#ff3366; font-weight:800; font-size:20px; letter-spacing:1px;">[RUBY] ${isim}</span> 
                                 </div>
-                                <iframe src="https://lichess.org/embed/${oyuncu.playingId}?theme=dark&bg=dark&v=${zamanDamgasi}" width="100%" height="370" frameborder="0"></iframe>
-                                <a href="https://lichess.org/${oyuncu.playingId}" target="_blank" style="color: #0a0a0a; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 15px; background: #ff3366; padding: 10px 20px; border-radius: 20px; transition: 0.3s;">Dev Ekranda İzle</a>
+                                <iframe src="https://lichess.org/embed/${oyuncu.playingId}?theme=light&bg=light&v=${zamanDamgasi}" width="100%" height="370" frameborder="0"></iframe>
+                                <a href="https://lichess.org/${oyuncu.playingId}" target="_blank" style="color: #fff; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 15px; background: #ff3366; padding: 10px 20px; border-radius: 20px; transition: 0.3s; box-shadow: 0 4px 10px rgba(255, 51, 102, 0.2);">Dev Ekranda İzle</a>
                             </div>
                         `;
                     }
@@ -408,10 +416,10 @@
                 }
                 
                 if (onlineKisiler.length > 0) {
-                    let isimlerHTML = onlineKisiler.map(kisi => `<span style="background: rgba(76, 175, 80, 0.1); padding: 6px 12px; border-radius: 20px; margin: 5px; display: inline-block; border: 1px solid rgba(76, 175, 80, 0.4); color: #4CAF50; font-size: 14px;">🟢 ${kisi.name}</span>`).join('');
-                    onlineAlani.innerHTML = `<h4 style="color: #888; font-weight: normal; margin-bottom: 15px;">Lobide Bekleyenler</h4><div>${isimlerHTML}</div>`;
+                    let isimlerHTML = onlineKisiler.map(kisi => `<span style="background: #e8f5e9; padding: 6px 12px; border-radius: 20px; margin: 5px; display: inline-block; border: 1px solid #c8e6c9; color: #2e7d32; font-size: 14px; font-weight: bold;">🟢 ${kisi.name}</span>`).join('');
+                    onlineAlani.innerHTML = `<h4 style="color: #636e72; margin-bottom: 15px;">Lobide Bekleyenler</h4><div>${isimlerHTML}</div>`;
                 } else {
-                    onlineAlani.innerHTML = `<p style="color: #444;">Lobide bekleyen oyuncu yok.</p>`;
+                    onlineAlani.innerHTML = `<p style="color: #636e72;">Lobide bekleyen oyuncu yok.</p>`;
                 }
             })
             .catch(hata => {
