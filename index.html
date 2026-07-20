@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RUBY Satranç Kulübü</title>
-    <!-- Daha zarif bir font ailesi -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         /* --- MİNİMALİST VE YAKUT TEMASI --- */
@@ -17,7 +16,6 @@
             padding-bottom: 50px;
         }
         
-        /* Acayip Havalı Neon Yakut Başlık Efekti */
         .neon-ruby {
             color: #ff3366;
             font-weight: 800;
@@ -62,7 +60,6 @@
         
         #icerik { display: none; margin-top: 30px; padding: 0 20px; }
         
-        /* --- BUZLU CAM (GLASSMORPHISM) MİNİMAL TABLOLAR --- */
         .tablo-kapsayici {
             background: rgba(30, 30, 30, 0.4);
             backdrop-filter: blur(10px);
@@ -101,68 +98,37 @@
         .oyuncu-satiri:hover { background: rgba(255, 51, 102, 0.05); border-radius: 8px; }
         .oyuncu-satiri:last-child { border-bottom: none; }
         
-        /* Unvanlar */
         .unvan-1 { color: #ff3366; font-weight: bold; font-size: 18px; text-shadow: 0 0 8px #ff3366; }
         .unvan-2 { color: #c0c0c0; font-weight: bold; font-size: 17px; }
         .unvan-3 { color: #cd7f32; font-weight: bold; font-size: 17px; }
-        
-        /* --- TURNUVA İSTATİSTİKLERİ ÖZEL TASARIM --- */
-        .stat-kutulari { display: flex; gap: 15px; font-size: 14px; font-weight: 600; }
-        .stat-g { color: #4CAF50; } 
-        .stat-b { color: #888; }    
-        .stat-m { color: #F44336; } 
-        .stat-oran { color: #ff3366; border: 1px solid #ff3366; padding: 2px 6px; border-radius: 5px; }
 
-        /* --- TEPEDEKİ MİNİMAL CANLI BUTONU --- */
         #ust-canli-buton {
-            background-color: rgba(224, 17, 95, 0.1); 
-            color: #ff3366; 
-            padding: 10px 25px; 
-            font-size: 16px;
-            border: 1px solid #ff3366; 
-            border-radius: 20px; 
-            cursor: pointer; 
-            margin-bottom: 10px;
-            font-weight: 600; 
-            transition: 0.3s;
+            background-color: rgba(224, 17, 95, 0.1); color: #ff3366; padding: 10px 25px; 
+            font-size: 16px; border: 1px solid #ff3366; border-radius: 20px; cursor: pointer; 
+            margin-bottom: 10px; font-weight: 600; transition: 0.3s;
         }
         #ust-canli-buton:hover { background-color: #ff3366; color: #0d0d0d; box-shadow: 0 0 15px #e0115f; }
 
-        /* --- MODAL (AÇILIR PENCERE) --- */
         .modal-arkaplan {
             display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%;
             background-color: rgba(13, 13, 13, 0.9); backdrop-filter: blur(8px); overflow: auto;
         }
         .modal-icerik {
-            background-color: #151515; margin: 5% auto; padding: 30px; 
-            border: 1px solid rgba(224, 17, 95, 0.3);
-            width: 90%; max-width: 900px; border-radius: 15px; position: relative;
-            box-shadow: 0 0 30px rgba(224, 17, 95, 0.2);
+            background-color: #151515; margin: 5% auto; padding: 30px; border: 1px solid rgba(224, 17, 95, 0.3);
+            width: 90%; max-width: 900px; border-radius: 15px; position: relative; box-shadow: 0 0 30px rgba(224, 17, 95, 0.2);
         }
-        .kapat-butonu {
-            color: #ff3366; float: right; font-size: 30px; font-weight: 300; cursor: pointer; line-height: 1;
-        }
+        .kapat-butonu { color: #ff3366; float: right; font-size: 30px; font-weight: 300; cursor: pointer; line-height: 1; }
         
         .mac-kutusu {
             background: #1a1a1a; padding: 15px; border-radius: 12px; text-align: center; 
             border: 1px solid #333; width: 100%; max-width: 380px;
         }
-        
-        /* YouTube Oynatıcıyı Gizlemek İçin GÜNCELLENMİŞ Güvenli Sınıf (Şeffaf ama boyutu var) */
-        .youtube-gizli { 
-            position: absolute; 
-            width: 200px; 
-            height: 200px; 
-            opacity: 0; 
-            pointer-events: none; 
-            z-index: -99; 
-        }
     </style>
 </head>
 <body>
 
-    <!-- YOUTUBE OYNATICI (YouTube engellemesin diye şeffaf hale getirildi) -->
-    <div id="youtube-player" class="youtube-gizli"></div>
+    <!-- Müzik Kutusu (Başlangıçta boş) -->
+    <div id="muzik-alani"></div>
 
     <div id="karsilama">
         <h1 class="neon-ruby" style="font-size: 4rem; margin: 0;">RUBY SATRANÇ</h1>
@@ -175,14 +141,6 @@
         
         <button id="ust-canli-buton">🔴 Canlı Maçları İzle</button>
         
-        <div class="tablo-kapsayici">
-            <div class="tablo-baslik">
-                <span>🏆 Kulüp Turnuva İstatistikleri</span>
-                <span style="font-size: 12px; color: #888; font-weight: normal;">(Son 11 Turnuva)</span>
-            </div>
-            <div id="turnuva-listesi" class="scroll-kapsayici">Yükleniyor...</div>
-        </div>
-
         <div class="tablo-kapsayici">
             <div class="tablo-baslik">⚡ Blitz Sıralaması (İlk 10)</div>
             <div id="blitz-top10">Veriler Lichess'ten çekiliyor...</div>
@@ -200,7 +158,6 @@
             <div class="tablo-baslik" style="border-bottom: 1px solid #ff3366; justify-content: center; margin-bottom: 30px;">
                 🔴 SAHADAKİLER
             </div>
-            
             <div id="modal-yukleniyor" style="color: #888; text-align: center; display: none;">Lichess taranıyor...</div>
             <div id="mac-yapanlar-alani" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; margin-bottom: 40px;"></div>
             <div id="sadece-online-alani" style="border-top: 1px dashed #333; padding-top: 20px; text-align: center;"></div>
@@ -208,68 +165,25 @@
     </div>
 
     <script>
-        // --- TURNUVA VERİLERİ (Takımının GERÇEK verilerini buraya girebilirsin) ---
-        const turnuvaVerileri = [
-            { isim: "Armageddon_Satranc", g: 33, b: 23, m: 13 },
-            { isim: "EmanuelLasker61", g: 28, b: 15, m: 8 },
-            { isim: "Shut_LeaderAPI", g: 25, b: 10, m: 12 },
-            { isim: "Ricardoreti1979", g: 20, b: 8, m: 15 },
-            { isim: "SerkanKayaa", g: 18, b: 5, m: 10 }
-        ];
-
-        // --- YOUTUBE MÜZİK MOTORU ---
-        var tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        var firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-        var player;
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('youtube-player', {
-                height: '200', width: '200', 
-                videoId: '5qap5aO4i9A', // Rahatlatıcı Satranç Lofi Müziği
-                playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': '5qap5aO4i9A' }
-            });
-        }
-
+        // --- GİRİŞ BUTONU VE GARANTİLİ MÜZİK TETİKLEYİCİSİ ---
         document.getElementById('giris-butonu').addEventListener('click', function() {
-            try { if (player && typeof player.playVideo === 'function') { player.playVideo(); } } 
-            catch (e) { console.log("Müzik başlatılamadı."); }
+            // Brave tarayıcıyı kandırmak için müziği buton tıklandıktan hemen sonra sayfaya enjekte ediyoruz.
+            // Bu sayede tarayıcı bunu bir "kullanıcı isteği" olarak görüp engellemeyecek.
+            document.getElementById('muzik-alani').innerHTML = `
+                <iframe 
+                    width="10" 
+                    height="10" 
+                    src="https://www.youtube.com/embed/5qap5aO4i9A?autoplay=1&loop=1&playlist=5qap5aO4i9A" 
+                    frameborder="0" 
+                    allow="autoplay" 
+                    style="opacity: 0.01; position: absolute; z-index: -99;">
+                </iframe>`;
             
             document.getElementById('karsilama').style.display = 'none';
             document.getElementById('icerik').style.display = 'block';
+            
             veriCekVeSirala();
-            turnuvaTablosuOlustur();
         });
-
-        // --- TURNUVA TABLOSU OLUŞTURUCU ---
-        function turnuvaTablosuOlustur() {
-            turnuvaVerileri.sort((a, b) => {
-                let oranA = a.g / (a.g + a.b + a.m);
-                let oranB = b.g / (b.g + b.b + b.m);
-                return oranB - oranA;
-            });
-
-            let html = '';
-            for(let i = 0; i < turnuvaVerileri.length; i++) {
-                let d = turnuvaVerileri[i];
-                let toplamMac = d.g + d.b + d.m;
-                let basariOrani = ((d.g / toplamMac) * 100).toFixed(1);
-                
-                html += `
-                    <div class="oyuncu-satiri">
-                        <span style="color: #e0e0e0; font-weight: 600;">${i+1}. ${d.isim}</span>
-                        <div class="stat-kutulari">
-                            <span class="stat-g" title="Galibiyet">${d.g}G</span>
-                            <span class="stat-b" title="Beraberlik">${d.b}B</span>
-                            <span class="stat-m" title="Mağlubiyet">${d.m}M</span>
-                            <span class="stat-oran">%${basariOrani}</span>
-                        </div>
-                    </div>
-                `;
-            }
-            document.getElementById('turnuva-listesi').innerHTML = html;
-        }
 
         // --- LİCHESS LİSTE MOTORU ---
         function veriCekVeSirala() {
@@ -369,6 +283,7 @@
                     macAlani.innerHTML = "<p style='color: #666;'>Sahada kimse yok.</p>";
                 } else {
                     let macHTML = '';
+                    let zamanDamgasi = new Date().getTime(); 
                     
                     for(let oyuncu of aktifMaclar) {
                         let isim = oyuncu.name || oyuncu.id;
@@ -377,7 +292,7 @@
                                 <div style="margin-bottom: 15px;">
                                     <span style="color:#ff3366; font-weight:800; font-size:20px; letter-spacing:1px; text-shadow: 0 0 10px #ff3366;">[RUBY] ${isim}</span> 
                                 </div>
-                                <iframe src="https://lichess.org/embed/${oyuncu.playingId}?theme=dark&bg=dark" width="100%" height="370" frameborder="0"></iframe>
+                                <iframe src="https://lichess.org/embed/${oyuncu.playingId}?theme=dark&bg=dark&v=${zamanDamgasi}" width="100%" height="370" frameborder="0"></iframe>
                                 <a href="https://lichess.org/${oyuncu.playingId}" target="_blank" style="color: #0d0d0d; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 15px; background: #ff3366; padding: 10px 20px; border-radius: 20px; transition: 0.3s;">Dev Ekranda İzle</a>
                             </div>
                         `;
