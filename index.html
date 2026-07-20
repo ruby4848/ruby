@@ -32,7 +32,6 @@
             margin-top: 20px;
         }
         
-        /* Yeni Eklenen Stiller: Tablolar ve Unvanlar */
         .tablo-kapsayici {
             background-color: #2c2c2c;
             border-radius: 10px;
@@ -51,7 +50,6 @@
         }
         .oyuncu-satiri:last-child { border-bottom: none; }
         
-        /* Hareketli Yıldız Efekti ve Renkler */
         .unvan-1 { color: #ffd700; font-weight: bold; animation: parilti 1.5s infinite alternate; }
         .unvan-2 { color: #c0c0c0; font-weight: bold; }
         .unvan-3 { color: #cd7f32; font-weight: bold; }
@@ -71,7 +69,6 @@
     <div id="icerik">
         <h2 style="color: #ffcc00;">Ruby Satranç Takımı</h2>
         
-        <!-- Yeni Eklenen: Blitz Sıralaması Tablosu -->
         <div class="tablo-kapsayici">
             <h3>⚡ Blitz Sıralaması (İlk 10)</h3>
             <div id="blitz-listesi">Veriler Lichess'ten çekiliyor...</div>
@@ -81,7 +78,6 @@
     </div>
 
     <script>
-        // YouTube API
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -100,32 +96,31 @@
             document.getElementById('karsilama').style.display = 'none';
             document.getElementById('icerik').style.display = 'block';
             
-            // Müzik çalarken verileri çekmeye başla
             veriCekVeSirala();
         });
 
-        // Yeni Eklenen: Lichess'ten Veri Çekme Fonksiyonu
         function veriCekVeSirala() {
-            // Lichess API'sinden ruby-satranc takımının verilerini istiyoruz
             fetch('https://lichess.org/api/team/ruby-satranc/users')
-            .then(response => response.text())
+            .then(response => {
+                if(!response.ok) throw new Error("Takım bulunamadı veya Lichess sunucusu yanıt vermiyor.");
+                return response.text();
+            })
             .then(text => {
-                // Lichess verisi satır satır gelir, bunu listeye çeviriyoruz
-                let satirlar = text.trim().split('\n');
+                // Boş satırları görmezden gelerek güvenli bir şekilde JSON'a çeviriyoruz
+                let satirlar = text.trim().split('\n').filter(satir => satir.trim() !== '');
                 let oyuncular = satirlar.map(satir => JSON.parse(satir));
                 
-                // Blitz puanına göre en yüksekten düşüğe sırala
+                // Güvenli puan kontrolü: Oyuncunun perfs veya blitz verisi yoksa 0 kabul et
                 oyuncular.sort((a, b) => {
-                    let puanA = a.perfs.blitz ? a.perfs.blitz.rating : 0;
-                    let puanB = b.perfs.blitz ? b.perfs.blitz.rating : 0;
+                    let puanA = (a.perfs && a.perfs.blitz) ? a.perfs.blitz.rating : 0;
+                    let puanB = (b.perfs && b.perfs.blitz) ? b.perfs.blitz.rating : 0;
                     return puanB - puanA;
                 });
                 
-                // Tabloyu Oluştur
                 let listeHTML = '';
                 for(let i = 0; i < Math.min(10, oyuncular.length); i++) {
                     let oyuncu = oyuncular[i];
-                    let puan = oyuncu.perfs.blitz ? oyuncu.perfs.blitz.rating : 0;
+                    let puan = (oyuncu.perfs && oyuncu.perfs.blitz) ? oyuncu.perfs.blitz.rating : 0;
                     let unvan = '';
                     let cssSinifi = '';
                     
@@ -141,11 +136,15 @@
                     `;
                 }
                 
-                document.getElementById('blitz-listesi').innerHTML = listeHTML;
+                if(oyuncular.length === 0) {
+                    document.getElementById('blitz-listesi').innerHTML = "Takımda henüz listelenecek oyuncu yok.";
+                } else {
+                    document.getElementById('blitz-listesi').innerHTML = listeHTML;
+                }
             })
             .catch(hata => {
-                document.getElementById('blitz-listesi').innerHTML = "Veriler çekilirken bir hata oluştu!";
-                console.error("API Hatası:", hata);
+                // Hatanın tam olarak ne olduğunu ekrana yazdırıyoruz
+                document.getElementById('blitz-listesi').innerHTML = "Sistem Hatası: " + hata.message;
             });
         }
     </script>
