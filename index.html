@@ -6,11 +6,11 @@
     <title>Lichess Satranç Kulübü</title>
     <style>
         body { 
-            background-color: #1a1a1a; /* Koyu satranç teması */
+            background-color: #1a1a1a; 
             color: #ffffff; 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             text-align: center; 
-            margin-top: 15%; 
+            margin-top: 5%; 
         }
         #giris-butonu { 
             padding: 20px 40px; 
@@ -21,38 +21,67 @@
             border-radius: 10px; 
             cursor: pointer;
             transition: 0.3s;
+            margin-top: 15%;
         }
         #giris-butonu:hover { 
             background-color: #ffcc00; 
             color: #1a1a1a; 
         }
         #icerik { 
-            display: none; /* İlk başta gizli */
-            margin-top: 50px;
+            display: none; 
+            margin-top: 20px;
+        }
+        
+        /* Yeni Eklenen Stiller: Tablolar ve Unvanlar */
+        .tablo-kapsayici {
+            background-color: #2c2c2c;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px auto;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+        .oyuncu-satiri {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #444;
+            font-size: 18px;
+        }
+        .oyuncu-satiri:last-child { border-bottom: none; }
+        
+        /* Hareketli Yıldız Efekti ve Renkler */
+        .unvan-1 { color: #ffd700; font-weight: bold; animation: parilti 1.5s infinite alternate; }
+        .unvan-2 { color: #c0c0c0; font-weight: bold; }
+        .unvan-3 { color: #cd7f32; font-weight: bold; }
+        
+        @keyframes parilti {
+            from { text-shadow: 0 0 5px #ffd700; }
+            to { text-shadow: 0 0 20px #fff, 0 0 30px #ffd700; }
         }
     </style>
 </head>
 <body>
 
-    <!-- İlk Karşılama Ekranı -->
     <div id="karsilama">
-        <h1>Lichess Takım Sayfamıza Hoş Geldiniz</h1>
         <button id="giris-butonu">Kulübe Giriş Yap</button>
     </div>
 
-    <!-- Asıl Site İçeriği (Giriş yaptıktan sonra açılacak) -->
     <div id="icerik">
-        <h2>Sistem Yükleniyor...</h2>
-        <p>Müzik çalıyor ve oyuncu verileri Lichess sunucularından çekiliyor...</p>
-        <!-- İleride listeleri ve tabloları buraya ekleyeceğiz -->
+        <h2 style="color: #ffcc00;">Ruby Satranç Takımı</h2>
         
-        <!-- Arka Plan Müzik Oynatıcısı (Gizli) -->
+        <!-- Yeni Eklenen: Blitz Sıralaması Tablosu -->
+        <div class="tablo-kapsayici">
+            <h3>⚡ Blitz Sıralaması (İlk 10)</h3>
+            <div id="blitz-listesi">Veriler Lichess'ten çekiliyor...</div>
+        </div>
+        
         <div id="youtube-player" style="display:none;"></div>
     </div>
 
-    <!-- YouTube Ses Sistemi (JavaScript) -->
     <script>
-        // YouTube API'sini otomatik olarak sisteme çekiyoruz
+        // YouTube API
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -60,27 +89,65 @@
 
         var player;
         function onYouTubeIframeAPIReady() {
-            // Seçtiğin videonun (kwZvy3qDpkQ) ayarları
             player = new YT.Player('youtube-player', {
-                height: '0',
-                width: '0',
-                videoId: 'kwZvy3qDpkQ', 
-                playerVars: {
-                    'autoplay': 0, // Tarayıcı engeline takılmamak için kapalı
-                    'controls': 0
-                }
+                height: '0', width: '0', videoId: 'kwZvy3qDpkQ', 
+                playerVars: { 'autoplay': 0, 'controls': 0 }
             });
         }
 
-        // Butona tıklandığında ne olacak?
         document.getElementById('giris-butonu').addEventListener('click', function() {
-            // 1. Müziği başlat
             player.playVideo();
-            // 2. Karşılama ekranını gizle
             document.getElementById('karsilama').style.display = 'none';
-            // 3. Asıl site içeriğini göster
             document.getElementById('icerik').style.display = 'block';
+            
+            // Müzik çalarken verileri çekmeye başla
+            veriCekVeSirala();
         });
+
+        // Yeni Eklenen: Lichess'ten Veri Çekme Fonksiyonu
+        function veriCekVeSirala() {
+            // Lichess API'sinden ruby-satranc takımının verilerini istiyoruz
+            fetch('https://lichess.org/api/team/ruby-satranc/users')
+            .then(response => response.text())
+            .then(text => {
+                // Lichess verisi satır satır gelir, bunu listeye çeviriyoruz
+                let satirlar = text.trim().split('\n');
+                let oyuncular = satirlar.map(satir => JSON.parse(satir));
+                
+                // Blitz puanına göre en yüksekten düşüğe sırala
+                oyuncular.sort((a, b) => {
+                    let puanA = a.perfs.blitz ? a.perfs.blitz.rating : 0;
+                    let puanB = b.perfs.blitz ? b.perfs.blitz.rating : 0;
+                    return puanB - puanA;
+                });
+                
+                // Tabloyu Oluştur
+                let listeHTML = '';
+                for(let i = 0; i < Math.min(10, oyuncular.length); i++) {
+                    let oyuncu = oyuncular[i];
+                    let puan = oyuncu.perfs.blitz ? oyuncu.perfs.blitz.rating : 0;
+                    let unvan = '';
+                    let cssSinifi = '';
+                    
+                    if(i === 0) { unvan = '👑 [KRAL] '; cssSinifi = 'unvan-1'; }
+                    else if(i === 1) { unvan = '⚔️ [VEZİR] '; cssSinifi = 'unvan-2'; }
+                    else if(i === 2) { unvan = '🏰 [KALE] '; cssSinifi = 'unvan-3'; }
+                    
+                    listeHTML += `
+                        <div class="oyuncu-satiri ${cssSinifi}">
+                            <span>${i+1}. ${unvan}${oyuncu.username}</span>
+                            <span>${puan} Puan</span>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('blitz-listesi').innerHTML = listeHTML;
+            })
+            .catch(hata => {
+                document.getElementById('blitz-listesi').innerHTML = "Veriler çekilirken bir hata oluştu!";
+                console.error("API Hatası:", hata);
+            });
+        }
     </script>
 </body>
 </html>
