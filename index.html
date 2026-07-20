@@ -100,27 +100,49 @@
         });
 
         function veriCekVeSirala() {
-            fetch('https://lichess.org/api/team/ruby-satranc/users')
+            // Lichess'ten veriyi en düzgün formatta (NDJSON) göndermesini zorunlu kılıyoruz
+            fetch('https://lichess.org/api/team/ruby-satranc/users', {
+                headers: { 'Accept': 'application/x-ndjson' }
+            })
             .then(response => {
-                if(!response.ok) throw new Error("Takım bulunamadı veya Lichess sunucusu yanıt vermiyor.");
+                if(!response.ok) throw new Error("Lichess sunucusu yanıt vermiyor.");
                 return response.text();
             })
             .then(text => {
-                // Boş satırları görmezden gelerek güvenli bir şekilde JSON'a çeviriyoruz
-                let satirlar = text.trim().split('\n').filter(satir => satir.trim() !== '');
-                let oyuncular = satirlar.map(satir => JSON.parse(satir));
+                let oyuncular = [];
                 
-                // Güvenli puan kontrolü: Oyuncunun perfs veya blitz verisi yoksa 0 kabul et
+                // --- AKILLI VERİ ÇÖZÜCÜ ---
+                try {
+                    // Önce Lichess'in tüm listeyi tek bir dizi olarak atıp atmadığını kontrol ediyoruz
+                    let veri = JSON.parse(text);
+                    if (Array.isArray(veri)) { oyuncular = veri; } 
+                    else if (veri.users && Array.isArray(veri.users)) { oyuncular = veri.users; } 
+                    else { oyuncular = [veri]; }
+                } catch(e) {
+                    // Eğer dizi değilse, veriyi satır satır okuyan sisteme geçiyoruz
+                    let satirlar = text.trim().split('\n').filter(s => s.trim() !== '');
+                    for(let satir of satirlar) {
+                        try { oyuncular.push(JSON.parse(satir)); } 
+                        catch(err) { console.error("Geçersiz satır atlandı"); }
+                    }
+                }
+                
+                // Oyuncuları Blitz puanına göre diz
                 oyuncular.sort((a, b) => {
                     let puanA = (a.perfs && a.perfs.blitz) ? a.perfs.blitz.rating : 0;
                     let puanB = (b.perfs && b.perfs.blitz) ? b.perfs.blitz.rating : 0;
                     return puanB - puanA;
                 });
                 
+                // Tabloyu Ekrana Bas
                 let listeHTML = '';
                 for(let i = 0; i < Math.min(10, oyuncular.length); i++) {
                     let oyuncu = oyuncular[i];
+                    
+                    // İsim ve Puanı garantili yoldan çekiyoruz
+                    let isim = oyuncu.username || oyuncu.id || "Gizli Oyuncu";
                     let puan = (oyuncu.perfs && oyuncu.perfs.blitz) ? oyuncu.perfs.blitz.rating : 0;
+                    
                     let unvan = '';
                     let cssSinifi = '';
                     
@@ -130,21 +152,20 @@
                     
                     listeHTML += `
                         <div class="oyuncu-satiri ${cssSinifi}">
-                            <span>${i+1}. ${unvan}${oyuncu.username}</span>
+                            <span>${i+1}. ${unvan}${isim}</span>
                             <span>${puan} Puan</span>
                         </div>
                     `;
                 }
                 
                 if(oyuncular.length === 0) {
-                    document.getElementById('blitz-listesi').innerHTML = "Takımda henüz listelenecek oyuncu yok.";
+                    document.getElementById('blitz-listesi').innerHTML = "Listelenecek oyuncu verisi alınamadı.";
                 } else {
                     document.getElementById('blitz-listesi').innerHTML = listeHTML;
                 }
             })
             .catch(hata => {
-                // Hatanın tam olarak ne olduğunu ekrana yazdırıyoruz
-                document.getElementById('blitz-listesi').innerHTML = "Sistem Hatası: " + hata.message;
+                document.getElementById('blitz-listesi').innerHTML = "Hata: " + hata.message;
             });
         }
     </script>
