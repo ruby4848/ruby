@@ -81,13 +81,11 @@
     <div id="icerik">
         <h1 style="color: #ffcc00; letter-spacing: 2px;">Ruby Satranç Takımı</h1>
         
-        <!-- Orijinal Başlık ve İlk 10 Tablosu -->
         <div class="tablo-kapsayici">
             <h2 style="border-bottom: 2px solid #ffcc00; padding-bottom: 10px;">⚡ Blitz Sıralaması (İlk 10)</h2>
             <div id="blitz-top10">Veriler Lichess'ten çekiliyor...</div>
         </div>
         
-        <!-- Orijinal Başlık ve Kaydırmalı İlk 100 Tablosu -->
         <div class="tablo-kapsayici">
             <h2 style="border-bottom: 1px solid #777; padding-bottom: 10px; color: #ccc;">📜 Genel Sıralama (İlk 100)</h2>
             <div id="blitz-top100" class="scroll-kapsayici">Yükleniyor...</div>
@@ -119,25 +117,29 @@
         });
 
         function veriCekVeSirala() {
-            // İsimleri başarıyla çektiğimiz o en temel ve sorunsuz bağlantı yöntemi
             fetch('https://lichess.org/api/team/ruby-satranc/users')
             .then(response => response.text())
             .then(text => {
                 let oyuncular = [];
-                let satirlar = text.trim().split('\n');
                 
-                for(let satir of satirlar) {
-                    try { 
+                // KURŞUN GEÇİRMEZ ÇÖZÜCÜ: Lichess formatı ne olursa olsun çalışır
+                try {
+                    oyuncular = JSON.parse(text); // Veri tek parça gelirse
+                } catch (e) {
+                    let satirlar = text.split('\n'); // Veri satır satır gelirse
+                    for(let satir of satirlar) {
                         if(satir.trim() !== '') {
-                            oyuncular.push(JSON.parse(satir)); 
+                            try { oyuncular.push(JSON.parse(satir)); } catch(err) {}
                         }
-                    } catch(err) {}
+                    }
                 }
                 
-                // 0 Hatasını düzelttiğimiz basit puan okuma sistemi
+                // Puan sırasına diz (Eğer blitz yoksa 0 say)
                 oyuncular.sort((a, b) => {
-                    let puanA = (a.perfs && a.perfs.blitz && a.perfs.blitz.rating) ? Number(a.perfs.blitz.rating) : 0;
-                    let puanB = (b.perfs && b.perfs.blitz && b.perfs.blitz.rating) ? Number(b.perfs.blitz.rating) : 0;
+                    let puanA = 0;
+                    let puanB = 0;
+                    if (a.perfs && a.perfs.blitz && a.perfs.blitz.rating) puanA = a.perfs.blitz.rating;
+                    if (b.perfs && b.perfs.blitz && b.perfs.blitz.rating) puanB = b.perfs.blitz.rating;
                     return puanB - puanA;
                 });
                 
@@ -147,7 +149,11 @@
                 for(let i = 0; i < oyuncular.length; i++) {
                     let oyuncu = oyuncular[i];
                     let isim = oyuncu.username || "Bilinmiyor";
-                    let puan = (oyuncu.perfs && oyuncu.perfs.blitz && oyuncu.perfs.blitz.rating) ? oyuncu.perfs.blitz.rating : 0;
+                    
+                    let puan = 0;
+                    if (oyuncu.perfs && oyuncu.perfs.blitz && oyuncu.perfs.blitz.rating) {
+                        puan = oyuncu.perfs.blitz.rating;
+                    }
                     
                     let unvan = '';
                     let cssSinifi = '';
@@ -171,7 +177,7 @@
                 document.getElementById('blitz-top100').innerHTML = top100HTML;
             })
             .catch(hata => {
-                document.getElementById('blitz-top10').innerHTML = "Lichess bağlantı hatası.";
+                console.log(hata);
             });
         }
     </script>
