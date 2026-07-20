@@ -91,117 +91,11 @@
             <div id="blitz-top100" class="scroll-kapsayici">Yükleniyor...</div>
         </div>
         
-<!-- YENİ EKLENEN: CANLI MAÇLAR BÖLÜMÜ -->
-        <div class="tablo-kapsayici" style="margin-top: 40px; border: 2px dashed #ffcc00;">
-            <h2 style="color: #ffcc00; margin-bottom: 15px;">🔴 Canlı Yayın (Oynanan Maçlar)</h2>
-            <button id="canli-mac-butonu" style="padding: 10px 20px; background: #ffcc00; color: #1a1a1a; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 20px;">Şu An Oynayanları Bul</button>
-            <div id="canli-mac-listesi" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;">
-                <!-- Canlı maç tahtaları tıklandığında buraya gelecek -->
-                <p style="color: #bbb;">Sorgulamak için yukarıdaki butona tıklayın.</p>
-            </div>
-        </div>
-        
-        <div id="youtube-player" style="display:none;"></div>
-    </div>
-
-    <script>
-        var tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        var firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-        var player;
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('youtube-player', {
-                height: '0', width: '0', videoId: 'kwZvy3qDpkQ', 
-                playerVars: { 'autoplay': 0, 'controls': 0 }
-            });
-        }
-
-        document.getElementById('giris-butonu').addEventListener('click', function() {
-            player.playVideo();
-            document.getElementById('karsilama').style.display = 'none';
-            document.getElementById('icerik').style.display = 'block';
-            
-            veriCekVeSirala();
-        });
-
-        function veriCekVeSirala() {
-            // AŞAMA 1: Sadece oyuncu ID'lerini topluyoruz
-            fetch('https://lichess.org/api/team/ruby-satranc/users')
-            .then(response => response.text())
-            .then(text => {
-                let idListesi = [];
-                let satirlar = text.split('\n');
-                
-                for(let satir of satirlar) {
-                    if(satir.trim() !== '') {
-                        try { 
-                            let veri = JSON.parse(satir);
-                            if(veri.id) idListesi.push(veri.id); // Lichess saklasa bile ID'yi mecbur veriyor
-                        } catch(err) {}
-                    }
-                }
-                
-                if(idListesi.length === 0) throw new Error("Takım verisi alınamadı.");
-                
-                // AŞAMA 2: ID'leri gönderip "Bize bu kişilerin tam isimlerini ve puanlarını ver" diyoruz.
-                let sorgu = idListesi.slice(0, 300).join(',');
-                return fetch('https://lichess.org/api/users', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: sorgu
-                });
-            })
-            .then(response => response.json())
-            .then(tamOyuncular => {
-                // Artık elimizde içinde eksiksiz puanların (perfs) ve gerçek isimlerin (username) olduğu dizi var.
-                tamOyuncular.sort((a, b) => {
-                    let puanA = (a.perfs && a.perfs.blitz && a.perfs.blitz.rating) ? a.perfs.blitz.rating : 0;
-                    let puanB = (b.perfs && b.perfs.blitz && b.perfs.blitz.rating) ? b.perfs.blitz.rating : 0;
-                    return puanB - puanA;
-                });
-                
-                let top10HTML = '';
-                let top100HTML = '';
-                
-                for(let i = 0; i < tamOyuncular.length; i++) {
-                    let oyuncu = tamOyuncular[i];
-                    let isim = oyuncu.username || oyuncu.id; // Gerçek ismi garantiledik
-                    let puan = (oyuncu.perfs && oyuncu.perfs.blitz && oyuncu.perfs.blitz.rating) ? oyuncu.perfs.blitz.rating : 0;
-                    
-                    let unvan = '';
-                    let cssSinifi = '';
-                    
-                    if(i === 0) { unvan = '👑 [KRAL] '; cssSinifi = 'unvan-1'; }
-                    else if(i === 1) { unvan = '⚔️ [VEZİR] '; cssSinifi = 'unvan-2'; }
-                    else if(i === 2) { unvan = '🏰 [KALE] '; cssSinifi = 'unvan-3'; }
-                    
-                    let satirKodu = `
-                        <div class="oyuncu-satiri ${cssSinifi}">
-                            <span>${i+1}. ${unvan}${isim}</span>
-                            <span><strong>${puan}</strong> Puan</span>
-                        </div>
-                    `;
-                    
-                    if(i < 10) { top10HTML += satirKodu; }
-                    if(i < 100) { top100HTML += satirKodu; }
-                }
-                
-                document.getElementById('blitz-top10').innerHTML = top10HTML;
-                document.getElementById('blitz-top100').innerHTML = top100HTML;
-            })
-            .catch(hata => {
-                document.getElementById('blitz-top10').innerHTML = "Lichess Bağlantı Hatası: Lütfen sayfayı yenileyin.";
-            });
-        }
-    // --- YENİ EKLENEN: CANLI MAÇ SİSTEMİ MOTORU ---
-        // Mevcut kodları hiç etkilemez, kendi başına çalışır
+// --- YENİ EKLENEN: CANLI MAÇ SİSTEMİ MOTORU (SINIR KALDIRILDI) ---
         document.getElementById('canli-mac-butonu').addEventListener('click', function() {
             let listeDiv = document.getElementById('canli-mac-listesi');
-            listeDiv.innerHTML = "<p style='color: #ffcc00;'>Takım üyeleri taranıyor... Lütfen bekleyin.</p>";
+            listeDiv.innerHTML = "<p style='color: #ffcc00;'>Tüm takım üyeleri taranıyor... Lütfen bekleyin.</p>";
             
-            // 1. Önce takımdaki kişilerin kimliklerini (ID) alıyoruz
             fetch('https://lichess.org/api/team/ruby-satranc/users')
             .then(res => res.text())
             .then(text => {
@@ -213,40 +107,59 @@
                     }
                 }
                 
-                // 2. Lichess'in "Anlık Durum" merkezine soruyoruz: "Bunlardan maç yapan var mı?"
-                let ids = idListesi.slice(0, 300).join(',');
-                return fetch('https://lichess.org/api/users/status?ids=' + ids);
-            })
-            .then(res => res.json())
-            .then(durumlar => {
-                // playingId'si olanlar, şu an aktif maç yapanlardır
-                let aktifMaclar = durumlar.filter(kisi => kisi.playingId); 
+                // Lichess'in 100 kişilik sınırını aşmak için listeyi 100'erli gruplara (paketlere) bölüyoruz
+                let istekler = [];
+                for (let i = 0; i < idListesi.length; i += 100) {
+                    let ids = idListesi.slice(i, i + 100).join(',');
+                    istekler.push(fetch('https://lichess.org/api/users/status?ids=' + ids).then(r => r.json()));
+                }
                 
-                if(aktifMaclar.length === 0) {
-                    listeDiv.innerHTML = "<p>Şu anda maç yapan takım üyesi bulunmuyor.</p>";
+                // Tüm paketlerin aynı anda sorgulanmasını (Promise.all) sağlıyoruz
+                return Promise.all(istekler);
+            })
+            .then(sonuclar => {
+                // Parça parça gelen sonuçları tek bir dev listede birleştiriyoruz (flat)
+                let durumlar = sonuclar.flat();
+                
+                // Hem maç yapanları hem de aktif olanları buluyoruz
+                let aktifMaclar = durumlar.filter(kisi => kisi.playingId); 
+                let onlineKisiler = durumlar.filter(kisi => kisi.online && !kisi.playingId);
+                
+                if(aktifMaclar.length === 0 && onlineKisiler.length === 0) {
+                    listeDiv.innerHTML = "<p>Şu anda maç yapan veya aktif olan takım üyesi bulunmuyor.</p>";
                     return;
                 }
                 
-                // 3. Maç yapanlar için canlı satranç tahtalarını oluşturuyoruz
                 let htmlCikti = '';
+                
+                // 1. Maç Yapanlar İçin Satranç Tahtası
                 for(let oyuncu of aktifMaclar) {
                     htmlCikti += `
                         <div style="background: #222; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.8);">
-                            <h3 style="color: #fff; margin-bottom: 10px;">⚔️ ${oyuncu.name || oyuncu.id} Oynuyor</h3>
-                            
-                            <!-- Lichess Canlı Tahta Bağlantısı -->
-                            <iframe src="https://lichess.org/embed/${oyuncu.playingId}?theme=auto&bg=auto" 
-                                    width="400" height="444" frameborder="0"></iframe>
-                                    
+                            <h3 style="color: #ffcc00; margin-bottom: 10px;">⚔️ ${oyuncu.name || oyuncu.id} Oynuyor</h3>
+                            <iframe src="https://lichess.org/embed/${oyuncu.playingId}?theme=auto&bg=auto" width="300" height="333" frameborder="0"></iframe>
                             <br>
-                            <a href="https://lichess.org/${oyuncu.playingId}" target="_blank" style="color: #ffcc00; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 15px; border: 1px solid #ffcc00; padding: 5px 10px; border-radius: 5px;">Büyük Ekranda İzle</a>
+                            <a href="https://lichess.org/${oyuncu.playingId}" target="_blank" style="color: #1a1a1a; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 15px; background: #ffcc00; padding: 5px 10px; border-radius: 5px;">Büyük Ekranda İzle</a>
                         </div>
                     `;
                 }
+                
+                // 2. Sadece Çevrimiçi Olanlar İçin Yeşil Liste
+                if (onlineKisiler.length > 0) {
+                    htmlCikti += `
+                        <div style="width: 100%; margin-top: 20px; border-top: 1px dashed #555; padding-top: 15px;">
+                            <h4 style="color: #4CAF50;">🟢 Şu An Lichess'te Aktif Olanlar (Maç yapmayanlar):</h4>
+                            <p style="color: #aaa; font-size: 16px;">
+                    `;
+                    let isimler = onlineKisiler.map(kisi => `<b>${kisi.name}</b>`).join(', ');
+                    htmlCikti += isimler + `</p></div>`;
+                }
+                
                 listeDiv.innerHTML = htmlCikti;
             })
             .catch(hata => {
                 listeDiv.innerHTML = "<p>Sorgulama sırasında bir hata oluştu.</p>";
+                console.error("Detaylı Hata:", hata);
             });
         });
     </script>
