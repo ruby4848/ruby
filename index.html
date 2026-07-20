@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lichess Satranç Kulübü</title>
     <style>
-        /* --- TEMEL TASARIM --- */
         body { 
             background-color: #1a1a1a; 
             color: #ffffff; 
@@ -24,7 +23,6 @@
         
         #icerik { display: none; margin-top: 20px; }
         
-        /* --- TABLOLAR --- */
         .tablo-kapsayici {
             background-color: #2c2c2c; border-radius: 10px; padding: 20px;
             margin: 20px auto; width: 90%; max-width: 650px; box-shadow: 0 6px 12px rgba(0,0,0,0.6);
@@ -49,7 +47,6 @@
             to { text-shadow: 0 0 15px #fff, 0 0 25px #ffd700; }
         }
 
-        /* --- YENİ EKLENEN: AÇILIR PENCERE (MODAL) VE YAKUT EFEKTİ --- */
         #ust-canli-buton {
             background-color: #aa0000; color: white; padding: 12px 25px; font-size: 18px;
             border: 2px solid #ff4d4d; border-radius: 8px; cursor: pointer; margin-bottom: 20px;
@@ -77,7 +74,7 @@
         .kapat-butonu:hover { color: #fff; }
 
         .yakut-isim {
-            color: #e0115f; /* Yakut Kırmızısı */
+            color: #e0115f; 
             font-weight: bold;
             font-size: 22px;
             animation: yakutParlamasi 0.8s infinite alternate;
@@ -87,7 +84,6 @@
             to { text-shadow: 0 0 15px #ff4d4d, 0 0 25px #ff4d4d; color: #ff4d4d; }
         }
         
-        /* Çevrimiçi/Maç Kutu Ayırıcıları */
         .mac-kutusu {
             background: #222; padding: 15px; border-radius: 8px; text-align: center; 
             box-shadow: 0 4px 8px rgba(0,0,0,0.8); border: 1px solid #444; width: 100%; max-width: 350px;
@@ -103,7 +99,6 @@
     <div id="icerik">
         <h1 style="color: #ffcc00; letter-spacing: 2px;">Ruby Satranç Takımı</h1>
         
-        <!-- YENİ EKLENEN: TEPEDEKİ CANLI YAYIN BUTONU -->
         <button id="ust-canli-buton">🔴 Canlı Yayınları İzle</button>
         
         <div class="tablo-kapsayici">
@@ -119,7 +114,6 @@
         <div id="youtube-player" style="display:none;"></div>
     </div>
 
-    <!-- YENİ EKLENEN: AÇILIR PENCERE (MODAL) İSKELETİ -->
     <div id="canli-modal" class="modal-arkaplan">
         <div class="modal-icerik">
             <span class="kapat-butonu" id="modal-kapat">&times;</span>
@@ -127,16 +121,13 @@
             
             <div id="modal-yukleniyor" style="color: #bbb; display: none;">Saha taranıyor...</div>
             
-            <!-- MAÇ YAPANLAR AYRI ALAN -->
             <div id="mac-yapanlar-alani" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-bottom: 30px;"></div>
             
-            <!-- SADECE ONLİNE OLANLAR AYRI ALAN -->
             <div id="sadece-online-alani" style="border-top: 1px solid #444; padding-top: 20px; text-align: center;"></div>
         </div>
     </div>
 
     <script>
-        // --- YOUTUBE MÜZİK (ID'yi değiştirdim, sakin lofi satranç müziği) ---
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -145,7 +136,7 @@
         var player;
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('youtube-player', {
-                height: '0', width: '0', videoId: 'zw1_S10BjSs', // <-- MÜZİK ID'Sİ BURADA
+                height: '0', width: '0', videoId: '5qap5aO4i9A', 
                 playerVars: { 'autoplay': 0, 'controls': 0 }
             });
         }
@@ -159,7 +150,6 @@
             veriCekVeSirala();
         });
 
-        // --- LİSTE ÇEKME MOTORU (Korundu) ---
         function veriCekVeSirala() {
             fetch('https://lichess.org/api/team/ruby-satranc/users')
             .then(response => response.text())
@@ -209,14 +199,13 @@
             }).catch(hata => {});
         }
 
-        // --- YENİ EKLENEN: AÇILIR PENCERE (MODAL) VE CANLI MAÇ MOTORU ---
         let modal = document.getElementById("canli-modal");
         let btn = document.getElementById("ust-canli-buton");
         let span = document.getElementById("modal-kapat");
 
         btn.onclick = function() {
             modal.style.display = "block";
-            canliYayinlariGetir(); // Modal açılınca verileri çek
+            canliYayinlariGetir();
         }
         span.onclick = function() { modal.style.display = "none"; }
         window.onclick = function(event) { if (event.target == modal) { modal.style.display = "none"; } }
@@ -242,7 +231,8 @@
                 let istekler = [];
                 for (let i = 0; i < idListesi.length; i += 100) {
                     let ids = idListesi.slice(i, i + 100).join(',');
-                    istekler.push(fetch('https://lichess.org/api/users/status?ids=' + ids).then(r => r.json()));
+                    // İŞTE SİHİRLİ KİLİT AÇICI BURADA: &withGameIds=true
+                    istekler.push(fetch('https://lichess.org/api/users/status?ids=' + ids + '&withGameIds=true').then(r => r.json()));
                 }
                 return Promise.all(istekler);
             })
@@ -253,7 +243,6 @@
                 let aktifMaclar = durumlar.filter(kisi => kisi.playingId); 
                 let onlineKisiler = durumlar.filter(kisi => kisi.online && !kisi.playingId);
                 
-                // 1. MAÇ YAPANLAR ALANI (Yakut Kırmızısı ve [RUBY] Etiketi)
                 if(aktifMaclar.length === 0) {
                     macAlani.innerHTML = "<p style='color: #aaa;'>Şu anda maç yapan takım üyesi yok.</p>";
                 } else {
@@ -274,7 +263,6 @@
                     macAlani.innerHTML = macHTML;
                 }
                 
-                // 2. SADECE ÇEVRİMİÇİ OLANLAR ALANI
                 if (onlineKisiler.length > 0) {
                     let isimlerHTML = onlineKisiler.map(kisi => `<span style="background: #333; padding: 5px 10px; border-radius: 15px; margin: 5px; display: inline-block; border: 1px solid #4CAF50;">🟢 ${kisi.name}</span>`).join('');
                     onlineAlani.innerHTML = `
