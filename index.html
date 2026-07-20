@@ -117,43 +117,48 @@
         });
 
         function veriCekVeSirala() {
+            // AŞAMA 1: Sadece oyuncu ID'lerini topluyoruz
             fetch('https://lichess.org/api/team/ruby-satranc/users')
             .then(response => response.text())
             .then(text => {
-                let oyuncular = [];
+                let idListesi = [];
+                let satirlar = text.split('\n');
                 
-                // KURŞUN GEÇİRMEZ ÇÖZÜCÜ: Lichess formatı ne olursa olsun çalışır
-                try {
-                    oyuncular = JSON.parse(text); // Veri tek parça gelirse
-                } catch (e) {
-                    let satirlar = text.split('\n'); // Veri satır satır gelirse
-                    for(let satir of satirlar) {
-                        if(satir.trim() !== '') {
-                            try { oyuncular.push(JSON.parse(satir)); } catch(err) {}
-                        }
+                for(let satir of satirlar) {
+                    if(satir.trim() !== '') {
+                        try { 
+                            let veri = JSON.parse(satir);
+                            if(veri.id) idListesi.push(veri.id); // Lichess saklasa bile ID'yi mecbur veriyor
+                        } catch(err) {}
                     }
                 }
                 
-                // Puan sırasına diz (Eğer blitz yoksa 0 say)
-                oyuncular.sort((a, b) => {
-                    let puanA = 0;
-                    let puanB = 0;
-                    if (a.perfs && a.perfs.blitz && a.perfs.blitz.rating) puanA = a.perfs.blitz.rating;
-                    if (b.perfs && b.perfs.blitz && b.perfs.blitz.rating) puanB = b.perfs.blitz.rating;
+                if(idListesi.length === 0) throw new Error("Takım verisi alınamadı.");
+                
+                // AŞAMA 2: ID'leri gönderip "Bize bu kişilerin tam isimlerini ve puanlarını ver" diyoruz.
+                let sorgu = idListesi.slice(0, 300).join(',');
+                return fetch('https://lichess.org/api/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: sorgu
+                });
+            })
+            .then(response => response.json())
+            .then(tamOyuncular => {
+                // Artık elimizde içinde eksiksiz puanların (perfs) ve gerçek isimlerin (username) olduğu dizi var.
+                tamOyuncular.sort((a, b) => {
+                    let puanA = (a.perfs && a.perfs.blitz && a.perfs.blitz.rating) ? a.perfs.blitz.rating : 0;
+                    let puanB = (b.perfs && b.perfs.blitz && b.perfs.blitz.rating) ? b.perfs.blitz.rating : 0;
                     return puanB - puanA;
                 });
                 
                 let top10HTML = '';
                 let top100HTML = '';
                 
-                for(let i = 0; i < oyuncular.length; i++) {
-                    let oyuncu = oyuncular[i];
-                    let isim = oyuncu.username || "Bilinmiyor";
-                    
-                    let puan = 0;
-                    if (oyuncu.perfs && oyuncu.perfs.blitz && oyuncu.perfs.blitz.rating) {
-                        puan = oyuncu.perfs.blitz.rating;
-                    }
+                for(let i = 0; i < tamOyuncular.length; i++) {
+                    let oyuncu = tamOyuncular[i];
+                    let isim = oyuncu.username || oyuncu.id; // Gerçek ismi garantiledik
+                    let puan = (oyuncu.perfs && oyuncu.perfs.blitz && oyuncu.perfs.blitz.rating) ? oyuncu.perfs.blitz.rating : 0;
                     
                     let unvan = '';
                     let cssSinifi = '';
@@ -177,7 +182,7 @@
                 document.getElementById('blitz-top100').innerHTML = top100HTML;
             })
             .catch(hata => {
-                console.log(hata);
+                document.getElementById('blitz-top10').innerHTML = "Lichess Bağlantı Hatası: Lütfen sayfayı yenileyin.";
             });
         }
     </script>
