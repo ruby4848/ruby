@@ -53,7 +53,6 @@
         .scroll-kapsayici::-webkit-scrollbar-track { background: #1a1a1a; border-radius: 4px; }
         .scroll-kapsayici::-webkit-scrollbar-thumb { background: #ffcc00; border-radius: 4px; }
         
-        /* Yeni Şık Satır Tasarımı (Alt alta istatistikler için) */
         .oyuncu-satiri {
             display: flex;
             flex-direction: column;
@@ -135,35 +134,60 @@
             veriCekVeSirala();
         });
 
-        // Veriyi güvenli çekmek için Zırhlı Fonksiyonlar
+        // Verileri garantili çeken fonksiyonlar
         function statCek(oyuncu, kategori) {
-            try { return oyuncu.perfs[kategori].rating || "-"; } 
-            catch(e) { return "-"; } // Veri yoksa kısa çizgi koyar
+            try { 
+                let puan = oyuncu.perfs[kategori].rating;
+                return puan ? puan : 0;
+            } 
+            catch(e) { return 0; }
         }
 
         function macCek(oyuncu) {
             try { return oyuncu.count.all || 0; } 
-            catch(e) { return "?"; }
+            catch(e) { return 0; }
         }
 
         function veriCekVeSirala() {
+            // 1. ADIM: Sadece İsimleri Çekiyoruz
             fetch('https://lichess.org/api/team/ruby-satranc/users', {
                 headers: { 'Accept': 'application/x-ndjson' }
             })
-            .then(response => response.text())
+            .then(response => {
+                if(!response.ok) throw new Error("Takım verisi alınamadı.");
+                return response.text();
+            })
             .then(text => {
-                let oyuncular = [];
+                let isimler = [];
                 let satirlar = text.trim().split('\n').filter(s => s.trim() !== '');
-                
                 for(let satir of satirlar) {
-                    try { oyuncular.push(JSON.parse(satir)); } catch(err) {}
+                    try { 
+                        let veri = JSON.parse(satir);
+                        if(veri.username) isimler.push(veri.username);
+                    } catch(err) {}
                 }
                 
-                // Oyuncuları en iyi oldukları puana (Blitz, Rapid veya Bullet) göre sıralıyoruz
+                if(isimler.length === 0) throw new Error("Takımda oyuncu bulunamadı.");
+                
+                // 2. ADIM: İsim listesini Lichess'e geri gönderip "Bize tam profilleri (perfs) ver" diyoruz.
+                let sorguIsimleri = isimler.slice(0, 300).join(',');
+                
+                return fetch('https://lichess.org/api/users', {
+                    method: 'POST',
+                    headers: { 
+                        'Accept': 'application/json', 
+                        'Content-Type': 'text/plain' 
+                    },
+                    body: sorguIsimleri
+                });
+            })
+            .then(response => response.json())
+            .then(oyuncular => {
+                // Oyuncuları en iyi puanına göre yüksekten düşüğe sırala
                 oyuncular.sort((a, b) => {
-                    let maxA = Math.max(statCek(a, 'blitz') || 0, statCek(a, 'rapid') || 0, statCek(a, 'bullet') || 0);
-                    let maxB = Math.max(statCek(b, 'blitz') || 0, statCek(b, 'rapid') || 0, statCek(b, 'bullet') || 0);
-                    return maxB - maxA; // En yüksek puanı olan en üste çıkar
+                    let maxA = Math.max(statCek(a, 'blitz'), statCek(a, 'rapid'), statCek(a, 'bullet'));
+                    let maxB = Math.max(statCek(b, 'blitz'), statCek(b, 'rapid'), statCek(b, 'bullet'));
+                    return maxB - maxA; 
                 });
                 
                 let top10HTML = '';
@@ -171,7 +195,7 @@
                 
                 for(let i = 0; i < oyuncular.length; i++) {
                     let oyuncu = oyuncular[i];
-                    let isim = oyuncu.username || "Bilinmiyor";
+                    let isim = oyuncu.username;
                     
                     let blitz = statCek(oyuncu, 'blitz');
                     let rapid = statCek(oyuncu, 'rapid');
@@ -192,6 +216,7 @@
                                 <span>⚡ Blitz: <b>${blitz}</b></span>
                                 <span>⏱️ Rapid: <b>${rapid}</b></span>
                                 <span>🚀 Bullet: <b>${bullet}</b></span>
+                                <span>🎮 Toplam Maç: <b>${mac}</b></span>
                             </div>
                         </div>
                     `;
@@ -204,7 +229,8 @@
                 document.getElementById('blitz-top100').innerHTML = top100HTML;
             })
             .catch(hata => {
-                document.getElementById('blitz-top10').innerHTML = "Lichess verileri çekilemedi.";
+                document.getElementById('blitz-top10').innerHTML = "Lichess verileri çekilemedi: " + hata.message;
+                document.getElementById('blitz-top100').innerHTML = "Lichess verileri çekilemedi: " + hata.message;
             });
         }
     </script>
