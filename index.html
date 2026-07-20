@@ -91,6 +91,16 @@
             <div id="blitz-top100" class="scroll-kapsayici">Yükleniyor...</div>
         </div>
         
+<!-- YENİ EKLENEN: CANLI MAÇLAR BÖLÜMÜ -->
+        <div class="tablo-kapsayici" style="margin-top: 40px; border: 2px dashed #ffcc00;">
+            <h2 style="color: #ffcc00; margin-bottom: 15px;">🔴 Canlı Yayın (Oynanan Maçlar)</h2>
+            <button id="canli-mac-butonu" style="padding: 10px 20px; background: #ffcc00; color: #1a1a1a; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 20px;">Şu An Oynayanları Bul</button>
+            <div id="canli-mac-listesi" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;">
+                <!-- Canlı maç tahtaları tıklandığında buraya gelecek -->
+                <p style="color: #bbb;">Sorgulamak için yukarıdaki butona tıklayın.</p>
+            </div>
+        </div>
+        
         <div id="youtube-player" style="display:none;"></div>
     </div>
 
@@ -185,6 +195,60 @@
                 document.getElementById('blitz-top10').innerHTML = "Lichess Bağlantı Hatası: Lütfen sayfayı yenileyin.";
             });
         }
+    // --- YENİ EKLENEN: CANLI MAÇ SİSTEMİ MOTORU ---
+        // Mevcut kodları hiç etkilemez, kendi başına çalışır
+        document.getElementById('canli-mac-butonu').addEventListener('click', function() {
+            let listeDiv = document.getElementById('canli-mac-listesi');
+            listeDiv.innerHTML = "<p style='color: #ffcc00;'>Takım üyeleri taranıyor... Lütfen bekleyin.</p>";
+            
+            // 1. Önce takımdaki kişilerin kimliklerini (ID) alıyoruz
+            fetch('https://lichess.org/api/team/ruby-satranc/users')
+            .then(res => res.text())
+            .then(text => {
+                let idListesi = [];
+                let satirlar = text.split('\n');
+                for(let satir of satirlar) {
+                    if(satir.trim() !== '') {
+                        try { idListesi.push(JSON.parse(satir).id); } catch(e) {}
+                    }
+                }
+                
+                // 2. Lichess'in "Anlık Durum" merkezine soruyoruz: "Bunlardan maç yapan var mı?"
+                let ids = idListesi.slice(0, 300).join(',');
+                return fetch('https://lichess.org/api/users/status?ids=' + ids);
+            })
+            .then(res => res.json())
+            .then(durumlar => {
+                // playingId'si olanlar, şu an aktif maç yapanlardır
+                let aktifMaclar = durumlar.filter(kisi => kisi.playingId); 
+                
+                if(aktifMaclar.length === 0) {
+                    listeDiv.innerHTML = "<p>Şu anda maç yapan takım üyesi bulunmuyor.</p>";
+                    return;
+                }
+                
+                // 3. Maç yapanlar için canlı satranç tahtalarını oluşturuyoruz
+                let htmlCikti = '';
+                for(let oyuncu of aktifMaclar) {
+                    htmlCikti += `
+                        <div style="background: #222; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.8);">
+                            <h3 style="color: #fff; margin-bottom: 10px;">⚔️ ${oyuncu.name || oyuncu.id} Oynuyor</h3>
+                            
+                            <!-- Lichess Canlı Tahta Bağlantısı -->
+                            <iframe src="https://lichess.org/embed/${oyuncu.playingId}?theme=auto&bg=auto" 
+                                    width="400" height="444" frameborder="0"></iframe>
+                                    
+                            <br>
+                            <a href="https://lichess.org/${oyuncu.playingId}" target="_blank" style="color: #ffcc00; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 15px; border: 1px solid #ffcc00; padding: 5px 10px; border-radius: 5px;">Büyük Ekranda İzle</a>
+                        </div>
+                    `;
+                }
+                listeDiv.innerHTML = htmlCikti;
+            })
+            .catch(hata => {
+                listeDiv.innerHTML = "<p>Sorgulama sırasında bir hata oluştu.</p>";
+            });
+        });
     </script>
 </body>
 </html>
