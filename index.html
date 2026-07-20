@@ -91,7 +91,6 @@
             <div id="blitz-top100" class="scroll-kapsayici">Yükleniyor...</div>
         </div>
 
-        <!-- CANLI MAÇLAR BÖLÜMÜ -->
         <div class="tablo-kapsayici" style="margin-top: 40px; border: 2px dashed #ffcc00;">
             <h2 style="color: #ffcc00; margin-bottom: 15px;">🔴 Canlı Yayın (Oynanan Maçlar)</h2>
             <button id="canli-mac-butonu" style="padding: 10px 20px; background: #ffcc00; color: #1a1a1a; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 20px;">Şu An Oynayanları Bul</button>
@@ -117,9 +116,16 @@
             });
         }
 
-        // --- GİRİŞ BUTONU (Bozulan kısım tamir edildi) ---
+        // --- GİRİŞ BUTONU (Müzik engellense bile siteyi açan zırh eklendi) ---
         document.getElementById('giris-butonu').addEventListener('click', function() {
-            player.playVideo();
+            try {
+                if (player && typeof player.playVideo === 'function') {
+                    player.playVideo();
+                }
+            } catch (e) {
+                console.log("Müzik başlatılamadı, ancak site yükleniyor.");
+            }
+            
             document.getElementById('karsilama').style.display = 'none';
             document.getElementById('icerik').style.display = 'block';
             
@@ -192,7 +198,7 @@
             });
         }
 
-        // --- CANLI MAÇ MOTORU (Lichess Sınırı Kaldırıldı) ---
+        // --- CANLI MAÇ MOTORU ---
         document.getElementById('canli-mac-butonu').addEventListener('click', function() {
             let listeDiv = document.getElementById('canli-mac-listesi');
             listeDiv.innerHTML = "<p style='color: #ffcc00;'>Tüm takım üyeleri taranıyor... Lütfen bekleyin.</p>";
