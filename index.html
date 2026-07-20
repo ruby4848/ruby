@@ -5,13 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lichess Satranç Kulübü</title>
     <style>
+        /* Temel Ayarlar */
         body { 
             background-color: #1a1a1a; 
             color: #ffffff; 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             text-align: center; 
-            margin-top: 5%; 
+            margin-top: 3%; 
+            padding-bottom: 50px;
         }
+        
+        /* Karşılama Butonu */
         #giris-butonu { 
             padding: 20px 40px; 
             font-size: 24px; 
@@ -26,58 +30,80 @@
         #giris-butonu:hover { 
             background-color: #ffcc00; 
             color: #1a1a1a; 
-        }
-        #icerik { 
-            display: none; 
-            margin-top: 20px;
+            box-shadow: 0 0 15px #ffcc00;
         }
         
+        #icerik { display: none; margin-top: 20px; }
+        
+        /* Tablo Tasarımları */
         .tablo-kapsayici {
             background-color: #2c2c2c;
             border-radius: 10px;
             padding: 20px;
             margin: 20px auto;
-            width: 80%;
-            max-width: 600px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 650px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.6);
         }
+        
+        /* Genel Sıralama için Kaydırma Çubuğu (Scrollbar) */
+        .scroll-kapsayici {
+            max-height: 400px; /* Kutunun maksimum yüksekliği */
+            overflow-y: auto;  /* Aşağı kaydırmayı aktifleştirir */
+            padding-right: 10px;
+        }
+        
+        /* Scrollbar Makyajı */
+        .scroll-kapsayici::-webkit-scrollbar { width: 8px; }
+        .scroll-kapsayici::-webkit-scrollbar-track { background: #1a1a1a; border-radius: 4px; }
+        .scroll-kapsayici::-webkit-scrollbar-thumb { background: #ffcc00; border-radius: 4px; }
+        
         .oyuncu-satiri {
             display: flex;
             justify-content: space-between;
-            padding: 10px;
+            padding: 12px 5px;
             border-bottom: 1px solid #444;
             font-size: 18px;
         }
         .oyuncu-satiri:last-child { border-bottom: none; }
         
-        .unvan-1 { color: #ffd700; font-weight: bold; animation: parilti 1.5s infinite alternate; }
-        .unvan-2 { color: #c0c0c0; font-weight: bold; }
-        .unvan-3 { color: #cd7f32; font-weight: bold; }
+        /* Unvan Renkleri ve Efektleri */
+        .unvan-1 { color: #ffd700; font-weight: bold; animation: parilti 1.5s infinite alternate; font-size: 20px; }
+        .unvan-2 { color: #c0c0c0; font-weight: bold; font-size: 19px; }
+        .unvan-3 { color: #cd7f32; font-weight: bold; font-size: 19px; }
         
         @keyframes parilti {
             from { text-shadow: 0 0 5px #ffd700; }
-            to { text-shadow: 0 0 20px #fff, 0 0 30px #ffd700; }
+            to { text-shadow: 0 0 15px #fff, 0 0 25px #ffd700; }
         }
     </style>
 </head>
 <body>
 
     <div id="karsilama">
-        <button id="giris-butonu">Kulübe Giriş Yap</button>
+        <button id="giris-butonu">Satranç Kulübüne Giriş Yap</button>
     </div>
 
     <div id="icerik">
-        <h2 style="color: #ffcc00;">Ruby Satranç Takımı</h2>
+        <h1 style="color: #ffcc00; letter-spacing: 2px;">RUBY SATRANÇ TAKIMI</h1>
         
+        <!-- İLK 10 (ŞAMPİYONLAR) TABLOSU -->
         <div class="tablo-kapsayici">
-            <h3>⚡ Blitz Sıralaması (İlk 10)</h3>
-            <div id="blitz-listesi">Veriler Lichess'ten çekiliyor...</div>
+            <h2 style="border-bottom: 2px solid #ffcc00; padding-bottom: 10px;">⚡ Blitz Liderler Tablosu (İlk 10)</h2>
+            <div id="blitz-top10">Veriler Lichess'ten çekiliyor...</div>
+        </div>
+        
+        <!-- İLK 100 (GENEL SIRALAMA) TABLOSU -->
+        <div class="tablo-kapsayici">
+            <h2 style="border-bottom: 1px solid #777; padding-bottom: 10px; color: #ccc;">📜 Genel Sıralama (İlk 100)</h2>
+            <div id="blitz-top100" class="scroll-kapsayici">Yükleniyor...</div>
         </div>
         
         <div id="youtube-player" style="display:none;"></div>
     </div>
 
     <script>
+        // YouTube API Kurulumu
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -99,49 +125,46 @@
             veriCekVeSirala();
         });
 
+        // Puanı güvenli bir şekilde çeken yardımcı fonksiyon (0 hatasını önlemek için)
+        function puanBul(oyuncu) {
+            if (oyuncu && oyuncu.perfs && oyuncu.perfs.blitz && typeof oyuncu.perfs.blitz.rating === 'number') {
+                return oyuncu.perfs.blitz.rating;
+            }
+            return 0; // Eğer oyuncu hiç blitz oynamamışsa 0 döner
+        }
+
         function veriCekVeSirala() {
-            // Lichess'ten veriyi en düzgün formatta (NDJSON) göndermesini zorunlu kılıyoruz
             fetch('https://lichess.org/api/team/ruby-satranc/users', {
                 headers: { 'Accept': 'application/x-ndjson' }
             })
             .then(response => {
-                if(!response.ok) throw new Error("Lichess sunucusu yanıt vermiyor.");
+                if(!response.ok) throw new Error("Bağlantı kurulamadı.");
                 return response.text();
             })
             .then(text => {
                 let oyuncular = [];
                 
-                // --- AKILLI VERİ ÇÖZÜCÜ ---
-                try {
-                    // Önce Lichess'in tüm listeyi tek bir dizi olarak atıp atmadığını kontrol ediyoruz
-                    let veri = JSON.parse(text);
-                    if (Array.isArray(veri)) { oyuncular = veri; } 
-                    else if (veri.users && Array.isArray(veri.users)) { oyuncular = veri.users; } 
-                    else { oyuncular = [veri]; }
-                } catch(e) {
-                    // Eğer dizi değilse, veriyi satır satır okuyan sisteme geçiyoruz
-                    let satirlar = text.trim().split('\n').filter(s => s.trim() !== '');
-                    for(let satir of satirlar) {
-                        try { oyuncular.push(JSON.parse(satir)); } 
-                        catch(err) { console.error("Geçersiz satır atlandı"); }
-                    }
+                // Lichess'in satır satır gönderdiği (NDJSON) veriyi okuma
+                let satirlar = text.trim().split('\n').filter(s => s.trim() !== '');
+                for(let satir of satirlar) {
+                    try { 
+                        oyuncular.push(JSON.parse(satir)); 
+                    } catch(err) {}
                 }
                 
-                // Oyuncuları Blitz puanına göre diz
+                // Puanlara göre yüksekten düşüğe sıralama
                 oyuncular.sort((a, b) => {
-                    let puanA = (a.perfs && a.perfs.blitz) ? a.perfs.blitz.rating : 0;
-                    let puanB = (b.perfs && b.perfs.blitz) ? b.perfs.blitz.rating : 0;
-                    return puanB - puanA;
+                    return puanBul(b) - puanBul(a);
                 });
                 
-                // Tabloyu Ekrana Bas
-                let listeHTML = '';
-                for(let i = 0; i < Math.min(10, oyuncular.length); i++) {
+                let top10HTML = '';
+                let top100HTML = '';
+                
+                // Verileri Tablolara Dağıtma
+                for(let i = 0; i < oyuncular.length; i++) {
                     let oyuncu = oyuncular[i];
-                    
-                    // İsim ve Puanı garantili yoldan çekiyoruz
-                    let isim = oyuncu.username || oyuncu.id || "Gizli Oyuncu";
-                    let puan = (oyuncu.perfs && oyuncu.perfs.blitz) ? oyuncu.perfs.blitz.rating : 0;
+                    let isim = oyuncu.username || oyuncu.id || "Bilinmiyor";
+                    let puan = puanBul(oyuncu);
                     
                     let unvan = '';
                     let cssSinifi = '';
@@ -150,22 +173,31 @@
                     else if(i === 1) { unvan = '⚔️ [VEZİR] '; cssSinifi = 'unvan-2'; }
                     else if(i === 2) { unvan = '🏰 [KALE] '; cssSinifi = 'unvan-3'; }
                     
-                    listeHTML += `
+                    let satirKodu = `
                         <div class="oyuncu-satiri ${cssSinifi}">
                             <span>${i+1}. ${unvan}${isim}</span>
-                            <span>${puan} Puan</span>
+                            <span><strong>${puan}</strong> Puan</span>
                         </div>
                     `;
+                    
+                    // İlk 10 kişiyi üst tabloya ekle
+                    if(i < 10) { top10HTML += satirKodu; }
+                    
+                    // İlk 100 kişiyi genel tabloya ekle
+                    if(i < 100) { top100HTML += satirKodu; }
                 }
                 
                 if(oyuncular.length === 0) {
-                    document.getElementById('blitz-listesi').innerHTML = "Listelenecek oyuncu verisi alınamadı.";
+                    document.getElementById('blitz-top10').innerHTML = "Veri alınamadı.";
+                    document.getElementById('blitz-top100').innerHTML = "Veri alınamadı.";
                 } else {
-                    document.getElementById('blitz-listesi').innerHTML = listeHTML;
+                    document.getElementById('blitz-top10').innerHTML = top10HTML;
+                    document.getElementById('blitz-top100').innerHTML = top100HTML;
                 }
             })
             .catch(hata => {
-                document.getElementById('blitz-listesi').innerHTML = "Hata: " + hata.message;
+                document.getElementById('blitz-top10').innerHTML = "Veri çekme hatası: " + hata.message;
+                document.getElementById('blitz-top100').innerHTML = "Veri çekme hatası: " + hata.message;
             });
         }
     </script>
