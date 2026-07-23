@@ -333,7 +333,7 @@
             });
         }
 
-       // --- %100 ANLIK SİTE İÇİ CANLI SAHA MOTORU ---
+       // --- %100 ANLIK SİTE İÇİ CANLI SAHA MOTORU VE SÜRE ÖLÇER ---
         async function canliSahaAc() {
             document.getElementById('canli-saha-modal').style.display='flex';
             let info = document.getElementById('canli-saha-bilgi');
@@ -372,41 +372,80 @@
                     
                     let maciGuncelle = async () => {
                         try {
-                            // Lichess'ten maç detaylarını (İsimler ve Hamleler) JSON olarak istiyoruz
-                            let gameRes = await fetch(`https://lichess.org/game/export/${gameId}`, {
-                                headers: { 'Accept': 'application/json' }
-                            });
-                            let gameData = await gameRes.json();
+                            // Lichess'ten PGN dosyasını süreleriyle birlikte (clocks=true) çekiyoruz
+                            let gameRes = await fetch(`https://lichess.org/game/export/${gameId}?clocks=true`);
+                            let pgnData = await gameRes.text();
                             
                             info.style.display = 'none';
                             boardDiv.style.display = 'block';
                             playersDiv.style.display = 'block';
                             linkBtn.style.display = 'inline-block';
 
-                            // İsimleri Çek ve Ekrana Bas
-                            let wName = gameData.players?.white?.user?.name || 'Beyaz';
-                            let bName = gameData.players?.black?.user?.name || 'Siyah';
-                            playersDiv.innerHTML = `⚪ ${wName} VS 🔴 ${bName}`;
+                            // PGN içinden İsimleri ve Süreleri Avlama
+                            let wName = pgnData.match(/\[White "(.*?)"\]/)?.[1] || 'Beyaz';
+                            let bName = pgnData.match(/\[Black "(.*?)"\]/)?.[1] || 'Siyah';
+                            let tcMatch = pgnData.match(/\[TimeControl "(.*?)"\]/)?.[1];
+                            
+                            // Başlangıç saatini hesaplama (Maç daha yeni başladıysa)
+                            let initialClock = "00:00";
+                            if(tcMatch && tcMatch !== "-" && tcMatch !== "0") {
+                                let baseSecs = parseInt(tcMatch.split('+')[0]);
+                                let m = Math.floor(baseSecs/60);
+                                let s = baseSecs % 60;
+                                initialClock = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+                            }
+
+                            // Tüm hamlelerin sürelerini listele ve son hamleleri bul
+                            let clocks = [...pgnData.matchAll(/\[%clk (.*?)\]/g)].map(m => m[1]);
+                            let wClockStr = initialClock, bClockStr = initialClock;
+                            
+                            if(clocks.length > 0) {
+                                if(clocks.length === 1) {
+                                    wClockStr = clocks[0];
+                                } else {
+                                    if(clocks.length % 2 === 0) { // Siyah oynadıysa
+                                        bClockStr = clocks[clocks.length - 1];
+                                        wClockStr = clocks[clocks.length - 2];
+                                    } else { // Beyaz oynadıysa
+                                        wClockStr = clocks[clocks.length - 1];
+                                        bClockStr = clocks[clocks.length - 2];
+                                    }
+                                }
+                            }
+
+                            // Süreleri şık bir formata çevirme ("0:03:00" -> "03:00")
+                            let formatClock = (str) => {
+                                let parts = str.split(':');
+                                if(parts.length === 3 && parts[0] === "0") return parts[1] + ":" + parts[2];
+                                return str;
+                            }
+
+                            // İsimleri ve Saatleri Ekrana Şıkça Yazdırma
+                            playersDiv.style.width = "380px";
+                            playersDiv.style.margin = "10px auto";
+                            playersDiv.innerHTML = `
+                                <div style="display:flex; justify-content:space-between; align-items:center; width:100%; font-size:14px;">
+                                    <span>⚪ ${wName} <span style="background:#ff3366; color:white; padding:3px 8px; border-radius:5px; margin-left:5px;">⏱️ ${formatClock(wClockStr)}</span></span>
+                                    <span style="font-size:12px; color:#aaa;">VS</span>
+                                    <span><span style="background:#ff3366; color:white; padding:3px 8px; border-radius:5px; margin-right:5px;">⏱️ ${formatClock(bClockStr)}</span> 🔴 ${bName}</span>
+                                </div>
+                            `;
                             linkBtn.href = `https://lichess.org/${gameId}`;
 
-                            // Hamleleri Lichess'ten alıp sitemizdeki tahtaya uygulayarak anlık durumu bul
-                            if(gameData.moves) {
-                                liveGame.reset();
-                                let hamleler = gameData.moves.split(' ');
-                                for(let h of hamleler) {
-                                    if(h) liveGame.move(h);
-                                }
-                                liveBoard.position(liveGame.fen()); // Tahtayı son hamleye güncelle
+                            // Satranç tahtasını tüm PGN hamlelerini hızlıca oynatarak güncelle
+                            if(pgnData) {
+                                liveGame.load_pgn(pgnData);
+                                liveBoard.position(liveGame.fen());
                             }
-                        } catch(e) {}
+                        } catch(e) { console.log(e); }
                     };
 
                     maciGuncelle();
-                    // Her 2 saniyede bir Lichess'ten yeni hamle var mı diye kontrol et
+                    // Her 2 Saniyede bir Tahtayı ve Süreleri Tazele!
                     streamInterval = setInterval(maciGuncelle, 2000); 
 
                 } else {
-                    info.innerText = "Şu an takımda maç yapan kimse yok 😔 (Maç yeni başladıysa 10 sn bekleyip tekrar basın)";
+                    info.innerText = "Şu an takımda maç yapan kimse yok 😔";
                 }
             } catch(e) { info.innerText = "Bağlantı hatası oluştu."; }
         }
