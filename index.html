@@ -125,7 +125,7 @@
 
     <div id="online-panel">
         <div class="online-baslik">🟢 Sitede Aktif Olanlar</div>
-        <div id="online-list-kutu" style="color: #636e72;">Bağlantı bekleniyor...</div>
+        <div id="online-list-kutu" style="color: #636e72;">Güncelleniyor...</div>
     </div>
 
     <div id="karsilama">
@@ -298,7 +298,6 @@
         }
 
         async function oturumKontrol() {
-            // Eski "Sporcu_682" gibi test verilerini temizle
             if (localStorage.getItem("ruby_aktif_kullanici") && localStorage.getItem("ruby_aktif_kullanici").startsWith("Sporcu_")) {
                 localStorage.removeItem("ruby_aktif_kullanici");
             }
@@ -308,7 +307,6 @@
             let kayitliKullanici = localStorage.getItem("ruby_aktif_kullanici");
 
             if (code && !kayitliKullanici) {
-                // 1. Lichess'ten Gerçek Jeton (Token) Alımı
                 let verifier = localStorage.getItem("pkce_verifier");
                 let redirectUri = window.location.href.split('?')[0];
 
@@ -328,7 +326,6 @@
                     let tokenData = await tokenRes.json();
 
                     if (tokenData.access_token) {
-                        // 2. Jeton ile Kullanıcının Gerçek Profil Bilgilerini Çekme
                         let accountRes = await fetch('https://lichess.org/api/account', {
                             headers: { 'Authorization': 'Bearer ' + tokenData.access_token }
                         });
@@ -340,10 +337,9 @@
                         }
                     }
                 } catch (err) {
-                    console.error("Giriş sırasında hata oluştu:", err);
+                    console.error("Giriş hatası:", err);
                 }
                 
-                // Güvenlik için adres çubuğundaki uzun kodu temizle
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
 
@@ -352,22 +348,38 @@
                 document.getElementById('kullanici-adi-goster').style.display = 'inline-block';
                 document.getElementById('kullanici-adi-goster').innerHTML = "👤 " + kayitliKullanici;
                 
-                // Gerçek isimle Firebase'e Çevrimiçi yazdır
+                // Canlı Sinyal Gönderme (Heartbeat) - Her 5 saniyede bir günceller
+                setInterval(() => {
+                    db.collection("online_uyeler").doc(kayitliKullanici).set({
+                        kullaniciAdi: kayitliKullanici,
+                        sonSinir: Date.now()
+                    });
+                }, 5000);
+
                 db.collection("online_uyeler").doc(kayitliKullanici).set({
                     kullaniciAdi: kayitliKullanici,
-                    sonGorulme: firebase.firestore.FieldValue.serverTimestamp()
+                    sonSinir: Date.now()
                 });
             }
             onlineUyeleriDinle();
         }
 
+        // --- SADECE AKTİF SİNYAL VERENLERİ LİSTELE / PASİFLERİ SİL ---
         function onlineUyeleriDinle() {
             db.collection("online_uyeler").onSnapshot(snapshot => {
                 let html = "";
+                let simdikiZaman = Date.now();
+
                 snapshot.forEach(doc => {
                     let data = doc.data();
-                    html += `<div style="margin-top:4px; font-weight:600;">🟢 ${data.kullaniciAdi}</div>`;
+                    // Eğer son sinyal 15 saniyeden eskiyse, veritabanından sil ve listede gösterme
+                    if (data.sonSinir && (simdikiZaman - data.sonSinir > 15000)) {
+                        db.collection("online_uyeler").doc(doc.id).delete();
+                    } else if (data.kullaniciAdi && !data.kullaniciAdi.startsWith("Sporcu_")) {
+                        html += `<div style="margin-top:4px; font-weight:600;">🟢 ${data.kullaniciAdi}</div>`;
+                    }
                 });
+
                 if(html === "") html = "<div style='color:#aaa;'>Şu an aktif üye yok</div>";
                 document.getElementById('online-list-kutu').innerHTML = html;
             });
