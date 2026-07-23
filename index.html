@@ -342,7 +342,7 @@
             });
         }
 
-        // --- TAKIM İÇİ CANLI SAHA (MOR TEMA) ---
+       // --- TAKIM İÇİ CANLI SAHA (MOR TEMA & ZORUNLU GÜNCELLEME) ---
         async function canliSahaAc() {
             document.getElementById('canli-saha-modal').style.display='flex';
             let iframe = document.getElementById('canli-saha-iframe');
@@ -354,23 +354,22 @@
 
             if(tumOyuncular.length === 0) { info.innerText = "Lütfen bekleyin, veriler yükleniyor..."; return; }
 
-            // İlk 100 üyeyi kontrol et
-            let ids = tumOyuncular.slice(0, 100).map(o => o.id).join(',');
+            // İlk 150 üyeyi tara
+            let ids = tumOyuncular.slice(0, 150).map(o => o.id).join(',');
             
             try {
-                let res = await fetch('https://lichess.org/api/users/status?ids=' + ids + '&withGameIds=true');
+                // Sonuna rastgele zaman damgası (nocache) ekleyerek Lichess'i taze veri vermeye zorluyoruz
+                let res = await fetch('https://lichess.org/api/users/status?ids=' + ids + '&withGameIds=true&nocache=' + Date.now());
                 let statuses = await res.json();
                 
-                // O an maç yapan (playingId dolu olan) ilk üyeyi bul
                 let oynayanUser = statuses.find(s => s.playingId);
                 
                 if(oynayanUser) {
                     info.style.display = 'none';
                     iframe.style.display = 'block';
-                    // Satranç tahtasını "purple" (mor) temayla göm
                     iframe.src = `https://lichess.org/embed/${oynayanUser.playingId}?theme=purple&bg=dark`;
                 } else {
-                    info.innerText = "Şu an takımda maç yapan kimse yok 😔";
+                    info.innerText = "Şu an takımda maç yapan kimse yok 😔 (Maç yeni başladıysa 15-20 sn sürebilir)";
                 }
             } catch(e) {
                 info.innerText = "Bağlantı hatası oluştu.";
@@ -519,6 +518,9 @@
         }
 
         window.onload = function() { oturumKontrol(); };
+    </script>
+</body>
+</html>
     </script>
 </body>
 </html>
