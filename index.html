@@ -333,7 +333,7 @@
             });
         }
 
-        // --- %100 ANLIK SİTE İÇİ CANLI SAHA MOTORU ---
+       // --- %100 ANLIK SİTE İÇİ CANLI SAHA MOTORU ---
         async function canliSahaAc() {
             document.getElementById('canli-saha-modal').style.display='flex';
             let info = document.getElementById('canli-saha-bilgi');
@@ -362,15 +362,20 @@
                     info.innerText = "Canlı Yayın Bağlanıyor... ⚡";
                     
                     if(!liveBoard) {
-                        liveBoard = Chessboard('canli-board', { position: 'start', pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png' });
+                        liveBoard = Chessboard('canli-board', { 
+                            position: 'start', 
+                            pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png' 
+                        });
                     }
 
-                    // Her 1.5 Saniyede Bir Lichess'ten Anlık FEN (Hamle) Verisini Çek ve Tahtada Oynat
                     if(streamInterval) clearInterval(streamInterval);
                     
                     let maciGuncelle = async () => {
                         try {
-                            let gameRes = await fetch(`https://lichess.org/api/game/${gameId}`);
+                            // Lichess'ten maç detaylarını (İsimler ve Hamleler) JSON olarak istiyoruz
+                            let gameRes = await fetch(`https://lichess.org/game/export/${gameId}`, {
+                                headers: { 'Accept': 'application/json' }
+                            });
                             let gameData = await gameRes.json();
                             
                             info.style.display = 'none';
@@ -378,160 +383,33 @@
                             playersDiv.style.display = 'block';
                             linkBtn.style.display = 'inline-block';
 
-                            playersDiv.innerHTML = `⚪ ${gameData.players.white.user?.name || 'Beyaz'} VS 🔴 ${gameData.players.black.user?.name || 'Siyah'}`;
+                            // İsimleri Çek ve Ekrana Bas
+                            let wName = gameData.players?.white?.user?.name || 'Beyaz';
+                            let bName = gameData.players?.black?.user?.name || 'Siyah';
+                            playersDiv.innerHTML = `⚪ ${wName} VS 🔴 ${bName}`;
                             linkBtn.href = `https://lichess.org/${gameId}`;
 
-                            // Tahtayı ve kuralları taze FEN ile güncelle
-                            if(gameData.fen) {
-                                liveGame.load(gameData.fen);
-                                liveBoard.position(gameData.fen);
+                            // Hamleleri Lichess'ten alıp sitemizdeki tahtaya uygulayarak anlık durumu bul
+                            if(gameData.moves) {
+                                liveGame.reset();
+                                let hamleler = gameData.moves.split(' ');
+                                for(let h of hamleler) {
+                                    if(h) liveGame.move(h);
+                                }
+                                liveBoard.position(liveGame.fen()); // Tahtayı son hamleye güncelle
                             }
                         } catch(e) {}
                     };
 
                     maciGuncelle();
-                    streamInterval = setInterval(maciGuncelle, 1500); // 1.5 saniyede bir anlık canlı aktarım
+                    // Her 2 saniyede bir Lichess'ten yeni hamle var mı diye kontrol et
+                    streamInterval = setInterval(maciGuncelle, 2000); 
 
                 } else {
                     info.innerText = "Şu an takımda maç yapan kimse yok 😔 (Maç yeni başladıysa 10 sn bekleyip tekrar basın)";
                 }
             } catch(e) { info.innerText = "Bağlantı hatası oluştu."; }
         }
-
-        function canliSahayiKapat() {
-            document.getElementById('canli-saha-modal').style.display='none';
-            if(streamInterval) clearInterval(streamInterval); // Canlı yayını durdur
-        }
-
-        // --- YAKLAŞAN TURNUVA SAYACI ---
-        let guncelTurnuvaLinki = "https://lichess.org/team/ruby-spor-kulubu/tournaments";
-        let turnuvaSayaciAraligi;
-
-        function turnuvaCekVeSayacBaslat() {
-            fetch('https://lichess.org/api/team/ruby-spor-kulubu/arena')
-            .then(res => res.text())
-            .then(text => {
-                let satirlar = text.trim().split('\n');
-                let yaklasanTurnuva = null;
-                let simdikiZaman = Date.now();
-
-                for(let satir of satirlar) {
-                    if(satir.trim() !== '') {
-                        try {
-                            let turnuva = JSON.parse(satir);
-                            if(turnuva.startsAt > simdikiZaman) { yaklasanTurnuva = turnuva; }
-                        } catch(e) {}
-                    }
-                }
-
-                if(yaklasanTurnuva) {
-                    document.getElementById('yaklasan-turnuva-alani').style.display = 'block';
-                    document.getElementById('turnuva-adi').innerText = yaklasanTurnuva.fullName;
-                    guncelTurnuvaLinki = "https://lichess.org/tournament/" + yaklasanTurnuva.id;
-                    
-                    if(turnuvaSayaciAraligi) clearInterval(turnuvaSayaciAraligi);
-
-                    turnuvaSayaciAraligi = setInterval(() => {
-                        let fark = yaklasanTurnuva.startsAt - Date.now();
-                        if(fark <= 0) {
-                            document.getElementById('turnuva-sayaci').innerText = "🔥 TURNUVA BAŞLADI! 🔥";
-                            clearInterval(turnuvaSayaciAraligi);
-                            return;
-                        }
-                        let gun = Math.floor(fark / (1000 * 60 * 60 * 24));
-                        let saat = Math.floor((fark % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                        let dakika = Math.floor((fark % (1000 * 60 * 60)) / (1000 * 60));
-                        let saniye = Math.floor((fark % (1000 * 60)) / 1000);
-                        let sayacMetni = ""; if(gun > 0) sayacMetni += gun + " Gün ";
-                        sayacMetni += (saat < 10 ? "0"+saat : saat) + ":" + (dakika < 10 ? "0"+dakika : dakika) + ":" + (saniye < 10 ? "0"+saniye : saniye);
-                        document.getElementById('turnuva-sayaci').innerText = sayacMetni;
-                    }, 1000);
-                }
-            }).catch(err => {});
-        }
-
-        function turnuvayaGit() { window.open(guncelTurnuvaLinki, '_blank'); }
-
-        // --- LİCHESS GİRİŞ VE SİNYAL SİSTEMİ ---
-        function generateRandomString(length) {
-            let text = ""; let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
-            for (let i = 0; i < length; i++) { text += possible.charAt(Math.floor(Math.random() * possible.length)); }
-            return text;
-        }
-
-        async function generateCodeChallenge(codeVerifier) {
-            const encoder = new TextEncoder(); const data = encoder.encode(codeVerifier);
-            const digest = await window.crypto.subtle.digest('SHA-256', data);
-            return btoa(String.fromCharCode.apply(null, new Uint8Array(digest))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-        }
-
-        async function lichessGirisYap() {
-            let verifier = generateRandomString(43); localStorage.setItem("pkce_verifier", verifier);
-            let challenge = await generateCodeChallenge(verifier);
-            let redirectUri = window.location.href.split('?')[0];
-            let lichessUrl = `https://lichess.org/oauth?response_type=code&client_id=ruby-spor-kulubu&redirect_uri=${encodeURIComponent(redirectUri)}&code_challenge_method=S256&code_challenge=${challenge}`;
-            window.location.href = lichessUrl;
-        }
-
-        async function oturumKontrol() {
-            if (localStorage.getItem("ruby_aktif_kullanici") && localStorage.getItem("ruby_aktif_kullanici").startsWith("Sporcu_")) {
-                localStorage.removeItem("ruby_aktif_kullanici");
-            }
-            let urlParams = new URLSearchParams(window.location.search);
-            let code = urlParams.get('code');
-            let kayitliKullanici = localStorage.getItem("ruby_aktif_kullanici");
-
-            if (code && !kayitliKullanici) {
-                let verifier = localStorage.getItem("pkce_verifier");
-                let redirectUri = window.location.href.split('?')[0];
-                try {
-                    let tokenRes = await fetch('https://lichess.org/api/token', {
-                        method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: new URLSearchParams({ grant_type: 'authorization_code', code: code, code_verifier: verifier, client_id: 'ruby-spor-kulubu', redirect_uri: redirectUri })
-                    });
-                    let tokenData = await tokenRes.json();
-                    if (tokenData.access_token) {
-                        let accountRes = await fetch('https://lichess.org/api/account', { headers: { 'Authorization': 'Bearer ' + tokenData.access_token } });
-                        let accountData = await accountRes.json();
-                        if (accountData.username) {
-                            kayitliKullanici = accountData.username;
-                            localStorage.setItem("ruby_aktif_kullanici", kayitliKullanici);
-                        }
-                    }
-                } catch (err) {}
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-
-            if (kayitliKullanici) {
-                document.getElementById('lichess-login-btn').style.display = 'none';
-                document.getElementById('kullanici-adi-goster').style.display = 'inline-block';
-                document.getElementById('kullanici-adi-goster').innerHTML = "👤 " + kayitliKullanici;
-                
-                setInterval(() => {
-                    db.collection("online_uyeler").doc(kayitliKullanici).set({ kullaniciAdi: kayitliKullanici, sonSinir: Date.now() });
-                }, 5000);
-                db.collection("online_uyeler").doc(kayitliKullanici).set({ kullaniciAdi: kayitliKullanici, sonSinir: Date.now() });
-            }
-            onlineUyeleriDinle();
-        }
-
-        function onlineUyeleriDinle() {
-            db.collection("online_uyeler").onSnapshot(snapshot => {
-                let html = ""; let simdikiZaman = Date.now();
-                snapshot.forEach(doc => {
-                    let data = doc.data();
-                    if (data.sonSinir && (simdikiZaman - data.sonSinir > 15000)) {
-                        db.collection("online_uyeler").doc(doc.id).delete();
-                    } else if (data.kullaniciAdi && !data.kullaniciAdi.startsWith("Sporcu_")) {
-                        html += `<div style="margin-top:4px; font-weight:600;">🟢 ${data.kullaniciAdi}</div>`;
-                    }
-                });
-                if(html === "") html = "<div style='color:#aaa;'>Şu an aktif üye yok</div>";
-                document.getElementById('online-list-kutu').innerHTML = html;
-            });
-        }
-
-        window.onload = function() { oturumKontrol(); };
     </script>
 </body>
 </html>
