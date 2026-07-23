@@ -162,9 +162,10 @@
 
     <!-- TAKIM İÇİ CANLI SAHA (MOR TEMA) -->
     <div id="canli-saha-modal">
-        <button onclick="document.getElementById('canli-saha-modal').style.display='none'" style="margin-bottom:20px; padding:10px 25px; background:#ff3366; color:#fff; border:none; border-radius:20px; cursor:pointer; font-weight:bold; font-size:16px;">✖ Sahayı Kapat</button>
+        <button onclick="document.getElementById('canli-saha-modal').style.display='none'" style="margin-bottom:10px; padding:10px 25px; background:#ff3366; color:#fff; border:none; border-radius:20px; cursor:pointer; font-weight:bold; font-size:16px;">✖ Sahayı Kapat</button>
         <div id="canli-saha-bilgi" style="color: white; font-size: 20px; font-weight: bold; margin-bottom: 15px;">Takım üyelerinin maçları aranıyor... 🔍</div>
         <iframe id="canli-saha-iframe" src="" style="width: 400px; height: 444px; border:none; display:none;" allowtransparency="true" frameborder="0"></iframe>
+        <a id="lichess-orijinal-link" href="#" target="_blank" style="display:none; margin-top:15px; padding:10px 20px; background:#2d3436; color:#fff; text-decoration:none; border-radius:20px; font-weight:bold;">Lichess'te Canlı Görüntüle 👁️</a>
     </div>
 
     <div id="karsilama">
@@ -347,18 +348,18 @@
             document.getElementById('canli-saha-modal').style.display='flex';
             let iframe = document.getElementById('canli-saha-iframe');
             let info = document.getElementById('canli-saha-bilgi');
+            let linkBtn = document.getElementById('lichess-orijinal-link');
             
             iframe.style.display = 'none';
+            linkBtn.style.display = 'none';
             info.style.display = 'block';
             info.innerText = "Takım üyelerinin maçları aranıyor... 🔍";
 
             if(tumOyuncular.length === 0) { info.innerText = "Lütfen bekleyin, veriler yükleniyor..."; return; }
 
-            // İlk 150 üyeyi tara
             let ids = tumOyuncular.slice(0, 150).map(o => o.id).join(',');
             
             try {
-                // Sonuna rastgele zaman damgası (nocache) ekleyerek Lichess'i taze veri vermeye zorluyoruz
                 let res = await fetch('https://lichess.org/api/users/status?ids=' + ids + '&withGameIds=true&nocache=' + Date.now());
                 let statuses = await res.json();
                 
@@ -367,15 +368,18 @@
                 if(oynayanUser) {
                     info.style.display = 'none';
                     iframe.style.display = 'block';
-                    iframe.src = `https://lichess.org/embed/${oynayanUser.playingId}?theme=purple&bg=dark`;
+                    iframe.src = `https://lichess.org/embed/game/${oynayanUser.playingId}?theme=purple&bg=dark`;
+                    
+                    // Lichess'te görüntüle butonunu aktif et
+                    linkBtn.href = `https://lichess.org/${oynayanUser.playingId}`;
+                    linkBtn.style.display = 'inline-block';
                 } else {
-                    info.innerText = "Şu an takımda maç yapan kimse yok 😔 (Maç yeni başladıysa 15-20 sn sürebilir)";
+                    info.innerText = "Şu an takımda maç yapan kimse yok 😔 (Maç yeni başladıysa 15 sn sürebilir)";
                 }
             } catch(e) {
                 info.innerText = "Bağlantı hatası oluştu.";
             }
         }
-
         // --- YAKLAŞAN TURNUVA SAYACI ---
         let guncelTurnuvaLinki = "https://lichess.org/team/ruby-spor-kulubu/tournaments";
         let turnuvaSayaciAraligi;
