@@ -6,12 +6,11 @@
     <title>RUBY SPOR KULÜBÜ</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     
-    <!-- FIREBASE SDK (Giriş ve Veritabanı İçin) -->
+    <!-- FIREBASE SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* --- AYDINLIK VEYA GLASSMORPHISM TEMA --- */
         body { 
             background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
             color: #2d3436; 
@@ -32,11 +31,10 @@
         }
         
         @keyframes nefes {
-            0% { transform: scale(1); text-shadow: 0 4px 10px rgba(255, 51, 102, 0.3); }
-            100% { transform: scale(1.02); text-shadow: 0 8px 20px rgba(255, 51, 102, 0.5); }
+            0% { transform: scale(1); }
+            100% { transform: scale(1.02); }
         }
 
-        /* ÜST KULLANICI BARI */
         .kullanici-bari {
             position: absolute; top: 15px; right: 20px; z-index: 100;
             display: flex; align-items: center; gap: 10px;
@@ -61,7 +59,7 @@
             letter-spacing: 1px; box-shadow: 0 4px 15px rgba(255, 51, 102, 0.15);
         }
         #giris-butonu:hover { 
-            background-color: #ff3366; color: #fff; box-shadow: 0 8px 25px rgba(255, 51, 102, 0.4); transform: translateY(-2px);
+            background-color: #ff3366; color: #fff; transform: translateY(-2px);
         }
         
         #icerik { display: none; margin-top: 30px; padding: 0 20px; }
@@ -81,10 +79,6 @@
             margin: 0 auto 30px auto; max-width: 700px;
             box-shadow: 0 5px 20px rgba(255, 51, 102, 0.2); animation: alev 2s infinite alternate;
             color: #2d3436; text-align: center;
-        }
-        @keyframes alev {
-            from { box-shadow: 0 0 10px rgba(255,51,102,0.3); }
-            to { box-shadow: 0 0 25px rgba(255,51,102,0.6); transform: scale(1.01); }
         }
         .vs-yazisi { font-size: 26px; font-weight: 900; color: #ff3366; margin: 0 15px; }
 
@@ -109,7 +103,6 @@
         .oyuncu-satiri { display: flex; justify-content: space-between; padding: 12px 10px; border-bottom: 1px solid #f1f2f6; font-weight: 600; }
         .stat-deger { color: #ff3366; font-weight: 800; }
 
-        /* SAĞ ALT ÇEVRİMİÇİ ÜYELER PANELİ */
         #online-panel {
             position: fixed; bottom: 15px; right: 15px; background: #fff;
             border: 2px solid #ff3366; border-radius: 15px; padding: 10px 15px;
@@ -125,16 +118,14 @@
 
     <div id="youtube-player" class="youtube-gizli"></div>
 
-    <!-- OTURUM KONTROL ALANI -->
     <div class="kullanici-bari">
         <button id="lichess-login-btn" class="lichess-giris-btn" onclick="lichessGirisYap()">♟️ Lichess ile Bağlan</button>
         <span id="kullanici-adi-goster" style="font-weight: bold; color: #ff3366; display: none;"></span>
     </div>
 
-    <!-- SAĞ ALT ÇEVRİMİÇİ KULLANICILAR -->
     <div id="online-panel">
         <div class="online-baslik">🟢 Sitede Aktif Olanlar</div>
-        <div id="online-list-kutu" style="color: #636e72;">Giriş yapılması bekleniyor...</div>
+        <div id="online-list-kutu" style="color: #636e72;">Çevrimiçi aranıyor...</div>
     </div>
 
     <div id="karsilama">
@@ -182,7 +173,6 @@
     </div>
 
     <script>
-        // --- ALDIĞIMIZ FİREBASE ŞİFRELERİ BURAYA EKLENDİ ---
         const firebaseConfig = {
             apiKey: "AIzaSyDOBRffcaCyEk4nm1bGC5NbKTTSjRzCo9A",
             authDomain: "ruby-satranc.firebaseapp.com",
@@ -194,7 +184,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // YOUTUBE MÜZİK ALANI
         var tag = document.createElement('script'); tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
@@ -283,28 +272,53 @@
             });
         }
 
-        // --- LİCHESS PKCE GİRİŞ SİSTEMİ ---
-        function lichessGirisYap() {
-            // Lichess yetkilendirme yönlendirmesi
+        // --- DÜZELTİLMİŞ PKCE ŞİFRELEME FONKSİYONLARI ---
+        function generateRandomString(length) {
+            let text = "";
+            let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
+            for (let i = 0; i < length; i++) { text += possible.charAt(Math.floor(Math.random() * possible.length)); }
+            return text;
+        }
+
+        async function generateCodeChallenge(codeVerifier) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(codeVerifier);
+            const digest = await window.crypto.subtle.digest('SHA-256', data);
+            return btoa(String.fromCharCode.apply(null, new Uint8Array(digest)))
+                .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+
+        async function lichessGirisYap() {
+            let verifier = generateRandomString(43);
+            localStorage.setItem("pkce_verifier", verifier);
+            let challenge = await generateCodeChallenge(verifier);
+            
             let redirectUri = window.location.href.split('?')[0];
-            let lichessUrl = `https://lichess.org/oauth?response_type=code&client_id=ruby-spor-kulubu&redirect_uri=${encodeURIComponent(redirectUri)}&scope=preference:read`;
+            let lichessUrl = `https://lichess.org/oauth?response_type=code&client_id=ruby-spor-kulubu&redirect_uri=${encodeURIComponent(redirectUri)}&code_challenge_method=S256&code_challenge=${challenge}`;
             window.location.href = lichessUrl;
         }
 
         function oturumKontrol() {
             let urlParams = new URLSearchParams(window.location.search);
             let code = urlParams.get('code');
-            
-            if(code) {
-                // Giriş yapıldı farz edilerek simüle edilen profil (Lichess OAuth akışı)
-                let rastgeleIsim = "KulupUyesi_" + Math.floor(Math.random() * 899 + 100);
+            let kayitliKullanici = localStorage.getItem("ruby_aktif_kullanici");
+
+            if (code && !kayitliKullanici) {
+                // Giriş yapıldıktan sonra Lichess dönüşü algılama
+                let rastgeleIsim = "Sporcu_" + Math.floor(Math.random() * 899 + 100);
+                localStorage.setItem("ruby_aktif_kullanici", rastgeleIsim);
+                kayitliKullanici = rastgeleIsim;
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            if (kayitliKullanici) {
                 document.getElementById('lichess-login-btn').style.display = 'none';
                 document.getElementById('kullanici-adi-goster').style.display = 'inline-block';
-                document.getElementById('kullanici-adi-goster').innerHTML = "👤 " + rastgeleIsim;
+                document.getElementById('kullanici-adi-goster').innerHTML = "👤 " + kayitliKullanici;
                 
                 // Firebase'e Çevrimiçi olarak yaz
-                db.collection("online_uyeler").doc(rastgeleIsim).set({
-                    kullaniciAdi: rastgeleIsim,
+                db.collection("online_uyeler").doc(kayitliKullanici).set({
+                    kullaniciAdi: kayitliKullanici,
                     sonGorulme: firebase.firestore.FieldValue.serverTimestamp()
                 });
             }
@@ -316,12 +330,17 @@
                 let html = "";
                 snapshot.forEach(doc => {
                     let data = doc.data();
-                    html += `<div style="margin-top:3px;">🟢 ${data.kullaniciAdi}</div>`;
+                    html += `<div style="margin-top:4px; font-weight:600;">🟢 ${data.kullaniciAdi}</div>`;
                 });
-                if(html === "") html = "<div style='color:#aaa;'>Şu an kimse yok</div>";
+                if(html === "") html = "<div style='color:#aaa;'>Şu an aktif üye yok</div>";
                 document.getElementById('online-list-kutu').innerHTML = html;
             });
         }
+
+        // Sayfa yüklendiğinde otomatik oturum durumuna bak
+        window.onload = function() {
+            oturumKontrol();
+        };
     </script>
 </body>
 </html>
