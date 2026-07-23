@@ -78,7 +78,7 @@
             100% { box-shadow: 0 0 0 0 rgba(255, 51, 102, 0); }
         }
 
-        /* --- YENİ: EZELİ REKABET PANOSU --- */
+        /* --- EZELİ REKABET PANOSU --- */
         .ezeli-rekabet-kutusu {
             background: linear-gradient(135deg, #fff0f3, #ffeaa7);
             border: 2px solid #ff3366;
@@ -159,7 +159,7 @@
             border: 1px solid #eee; width: 100%; max-width: 380px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
 
-        /* --- YENİ: TAHMİN ARENASI STİLLERİ --- */
+        /* --- TAHMİN ARENASI STİLLERİ --- */
         .tahmin-alani { margin-top: 15px; padding: 15px; background: #fff; border-radius: 10px; border: 1px dashed #ff3366; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         .tahmin-buton {
             background: #fff0f3; border: 1px solid #ff3366; color: #ff3366; padding: 8px 15px; border-radius: 20px; 
@@ -177,17 +177,16 @@
     <div id="youtube-player" class="youtube-gizli"></div>
 
     <div id="karsilama">
-        <h1 class="neon-ruby" style="font-size: 4rem; margin: 0;">RUBY SATRANÇ</h1>
+        <h1 class="neon-ruby" style="font-size: 4rem; margin: 0;">RUBY SPOR KULÜBÜ</h1>
         <p style="color: #636e72; letter-spacing: 2px; margin-top: 10px; font-weight: 600;">ELİT BİR TOPLULUK</p>
         <button id="giris-butonu">KULÜBE GİRİŞ YAP</button>
     </div>
 
     <div id="icerik">
-        <h1 class="neon-ruby" style="font-size: 2.5rem; margin-bottom: 25px;">RUBY SATRANÇ</h1>
+        <h1 class="neon-ruby" style="font-size: 2.5rem; margin-bottom: 25px;">RUBY SPOR KULÜBÜ</h1>
         
         <button id="ust-canli-buton">🔴 Canlı Sahaya Bağlan</button>
 
-        <!-- YENİ: EZELİ REKABET ALANI -->
         <div id="ezeli-rekabet-alani"></div>
         
         <div class="sekme-menusu">
@@ -276,7 +275,8 @@
         }
 
         function veriCekVeSirala() {
-            fetch('https://lichess.org/api/team/ruby-satranc/users')
+            // YENİ TAKIM BAĞLANTISI BURADA GÜNCELLENDİ
+            fetch('https://lichess.org/api/team/ruby-spor-kulubu/users')
             .then(response => response.text())
             .then(text => {
                 let idListesi = [];
@@ -298,7 +298,6 @@
                     return pB - pA;
                 });
 
-                // YENİ: EZELİ REKABET RADARINI DOLDUR (En iyi 2 oyuncu)
                 if(blitzSiralama.length >= 2) {
                     document.getElementById('ezeli-rekabet-alani').innerHTML = `
                         <div class="ezeli-rekabet-kutusu">
@@ -359,14 +358,6 @@
             }).catch(hata => {});
         }
 
-        let modal = document.getElementById("canli-modal");
-        let btn = document.getElementById("ust-canli-buton");
-        let span = document.getElementById("modal-kapat");
-
-        btn.onclick = function() { modal.style.display = "block"; canliYayinlariGetir(); }
-        span.onclick = function() { modal.style.display = "none"; }
-        window.onclick = function(e) { if (e.target == modal) { modal.style.display = "none"; } }
-
         function canliYayinlariGetir() {
             let macAlani = document.getElementById('mac-yapanlar-alani');
             let onlineAlani = document.getElementById('sadece-online-alani');
@@ -374,7 +365,8 @@
             
             macAlani.innerHTML = ''; onlineAlani.innerHTML = ''; loading.style.display = 'block';
             
-            fetch('https://lichess.org/api/team/ruby-satranc/users')
+            // YENİ TAKIM BAĞLANTISI BURADA GÜNCELLENDİ
+            fetch('https://lichess.org/api/team/ruby-spor-kulubu/users')
             .then(res => res.text())
             .then(text => {
                 let idListesi = []; let satirlar = text.split('\n');
@@ -403,7 +395,6 @@
                     let zamanDamgasi = new Date().getTime(); 
                     for(let oyuncu of aktifMaclar) {
                         let isim = oyuncu.name || oyuncu.id;
-                        // YENİ: TAHMİN ARENASI HTML YAPISI (Maç Kutusunun İçine Eklendi)
                         macHTML += `
                             <div class="mac-kutusu">
                                 <div style="margin-bottom: 15px;">
@@ -438,14 +429,12 @@
             .catch(hata => {});
         }
 
-        // --- YENİ: TAHMİN ARENASI MOTORU ---
         function oyVer(btn, secim) {
             let container = btn.parentElement;
             let bar = container.querySelector('.oran-cubugu-arkaplan');
             let dolgu = container.querySelector('.oran-cubugu-dolgu');
             let yazi = container.querySelector('.oran-yazisi');
             
-            // Tahmine göre rastgele mantıklı bir oran oluştur
             let beyazOran = Math.floor(Math.random() * 60) + 20; 
             if(secim === 'beyaz') beyazOran = Math.floor(Math.random() * 30) + 60; 
             if(secim === 'siyah') beyazOran = Math.floor(Math.random() * 30) + 10;
@@ -454,11 +443,9 @@
             bar.style.display = 'block';
             yazi.style.display = 'block';
             
-            // Animasyonu başlat
             setTimeout(() => { dolgu.style.width = beyazOran + '%'; }, 100);
             yazi.innerHTML = `⚪ %${beyazOran} Beyaz | ⚫ %${siyahOran} Siyah`;
             
-            // Oylama yapıldıktan sonra butonları kilitle
             let butonlar = container.querySelectorAll('.tahmin-buton');
             butonlar.forEach(b => { 
                 b.disabled = true; 
