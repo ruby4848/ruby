@@ -10,6 +10,12 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
+    <!-- ANLIK CANLI TAHTA KÜTÜPHANELERİ -->
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+
     <style>
         body { 
             background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
@@ -22,18 +28,11 @@
         }
         
         .neon-ruby {
-            color: #ff3366;
-            font-weight: 800;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            text-shadow: 0 4px 10px rgba(255, 51, 102, 0.3);
+            color: #ff3366; font-weight: 800; letter-spacing: 3px;
+            text-transform: uppercase; text-shadow: 0 4px 10px rgba(255, 51, 102, 0.3);
             animation: nefes 2s infinite alternate;
         }
-        
-        @keyframes nefes {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.02); }
-        }
+        @keyframes nefes { 0% { transform: scale(1); } 100% { transform: scale(1.02); } }
 
         .kullanici-bari {
             position: absolute; top: 15px; right: 20px; z-index: 100;
@@ -47,25 +46,20 @@
         .lichess-giris-btn:hover { background: #ff3366; }
 
         #karsilama {
-            height: 100vh;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            height: 100vh; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center;
             background: radial-gradient(circle at center, #ffffff 0%, #f0f2f5 100%);
         }
-        
         #giris-butonu { 
             padding: 15px 40px; font-size: 20px; font-weight: 600;
             background-color: #fff; color: #ff3366; border: 2px solid #ff3366; 
             border-radius: 30px; cursor: pointer; transition: all 0.4s ease; margin-top: 20px;
             letter-spacing: 1px; box-shadow: 0 4px 15px rgba(255, 51, 102, 0.15);
         }
-        #giris-butonu:hover { 
-            background-color: #ff3366; color: #fff; transform: translateY(-2px);
-        }
+        #giris-butonu:hover { background-color: #ff3366; color: #fff; transform: translateY(-2px); }
         
         #icerik { display: none; margin-top: 30px; padding: 0 20px; }
-        
         .ana-butonlar-alani { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-bottom: 25px; }
-        
         .ust-islem-btn {
             background-color: #fff; color: #ff3366; padding: 12px 25px; 
             font-size: 16px; border: 2px solid #ff3366; border-radius: 30px; cursor: pointer; 
@@ -73,26 +67,18 @@
         }
         .ust-islem-btn:hover { background-color: #ff3366; color: #fff; transform: scale(1.03); }
 
-        /* YAKUT KIRMIZI SAYAC */
         .yakut-kirmizi-sayac {
             background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
             color: white; border-radius: 15px; padding: 15px 20px;
             margin: 0 auto 25px auto; max-width: 600px; cursor: pointer;
-            box-shadow: 0 0 20px rgba(255, 8, 68, 0.6);
-            animation: yakutNefes 1.5s infinite alternate; transition: transform 0.3s;
-        }
-        .yakut-kirmizi-sayac:hover { transform: scale(1.03); }
-        @keyframes yakutNefes {
-            from { box-shadow: 0 0 10px rgba(255, 8, 68, 0.4); }
-            to { box-shadow: 0 0 25px rgba(255, 8, 68, 0.8); }
+            box-shadow: 0 0 20px rgba(255, 8, 68, 0.6); animation: yakutNefes 1.5s infinite alternate;
         }
 
         .ezeli-rekabet-kutusu {
             background: linear-gradient(135deg, #fff0f3, #ffeaa7);
             border: 2px solid #ff3366; border-radius: 15px; padding: 20px;
             margin: 0 auto 30px auto; max-width: 700px;
-            box-shadow: 0 5px 20px rgba(255, 51, 102, 0.2); animation: alev 2s infinite alternate;
-            color: #2d3436; text-align: center;
+            box-shadow: 0 5px 20px rgba(255, 51, 102, 0.2); color: #2d3436; text-align: center;
         }
         .vs-yazisi { font-size: 26px; font-weight: 900; color: #ff3366; margin: 0 15px; }
 
@@ -106,43 +92,41 @@
         .tablo-kapsayici {
             display: none; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 1); border-radius: 15px; padding: 25px;
-            margin: 0 auto 30px auto; width: 100%; max-width: 700px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: left;
+            margin: 0 auto 30px auto; width: 100%; max-width: 700px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: left;
         }
         .tablo-kapsayici.aktif-tablo { display: block; }
-        
         .tablo-baslik { border-bottom: 2px solid #fff0f3; padding-bottom: 12px; margin-bottom: 15px; color: #ff3366; font-size: 20px; font-weight: 600; }
-        .scroll-kapsayici { max-height: 500px; overflow-y: auto; padding-right: 5px; }
-        
+        .scroll-kapsayici { max-height: 500px; overflow-y: auto; }
         .oyuncu-satiri { display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; border-bottom: 1px solid #f1f2f6; font-weight: 600; }
         .stat-deger { color: #ff3366; font-weight: 800; }
-
-        /* YENİ LİNKLER VE BUTONLAR */
-        .profil-link { color: #2d3436; text-decoration: none; transition: 0.2s; }
+        .profil-link { color: #2d3436; text-decoration: none; }
         .profil-link:hover { color: #ff3366; text-decoration: underline; }
-        
         .mac-teklif-btn {
             background: #ff3366; color: white; padding: 6px 14px; border-radius: 20px;
             font-size: 13px; text-decoration: none; font-weight: bold; margin-left: 10px;
-            box-shadow: 0 2px 5px rgba(255, 51, 102, 0.3); transition: 0.2s; display: inline-block;
         }
-        .mac-teklif-btn:hover { background: #2d3436; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transform: scale(1.05); }
 
         #online-panel {
             position: fixed; bottom: 15px; right: 15px; background: #fff;
             border: 2px solid #ff3366; border-radius: 15px; padding: 10px 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15); z-index: 1000; text-align: left;
-            max-width: 220px; font-size: 13px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15); z-index: 1000; text-align: left; max-width: 220px; font-size: 13px;
         }
         .online-baslik { font-weight: bold; color: #ff3366; margin-bottom: 5px; border-bottom: 1px solid #eee; padding-bottom: 3px; }
 
-        /* CANLI SAHA MODAL */
+        /* YENİ CANLI TAHTA MODALI VE MOR TEMA */
         #canli-saha-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; 
+            background: rgba(0,0,0,0.92); z-index: 9999; justify-content: center; 
             align-items: center; flex-direction: column; backdrop-filter: blur(8px);
         }
-        #canli-saha-iframe { border-radius: 10px; box-shadow: 0 10px 30px rgba(156, 39, 176, 0.6); }
+        #canli-board { 
+            width: 380px; margin: 15px auto; border: 4px solid #8e44ad; 
+            border-radius: 8px; box-shadow: 0 0 25px rgba(142, 68, 173, 0.8); 
+        }
+        /* MOR TAHTA TEMASI */
+        .white-1e171 { background-color: #f0d9b5 !important; }
+        .black-3c85d { background-color: #8e44ad !important; }
+
         .youtube-gizli { position: absolute; width: 200px; height: 200px; opacity: 0; pointer-events: none; z-index: -99; top: -9999px;}
     </style>
 </head>
@@ -160,12 +144,15 @@
         <div id="online-list-kutu" style="color: #636e72;">Bağlantı bekleniyor...</div>
     </div>
 
-    <!-- TAKIM İÇİ CANLI SAHA (MOR TEMA) -->
+    <!-- %100 CANLI ANLIK MOR TAHTA -->
     <div id="canli-saha-modal">
-        <button onclick="document.getElementById('canli-saha-modal').style.display='none'" style="margin-bottom:10px; padding:10px 25px; background:#ff3366; color:#fff; border:none; border-radius:20px; cursor:pointer; font-weight:bold; font-size:16px;">✖ Sahayı Kapat</button>
-        <div id="canli-saha-bilgi" style="color: white; font-size: 20px; font-weight: bold; margin-bottom: 15px;">Takım üyelerinin maçları aranıyor... 🔍</div>
-        <iframe id="canli-saha-iframe" src="" style="width: 400px; height: 444px; border:none; display:none;" allowtransparency="true" frameborder="0"></iframe>
-        <a id="lichess-orijinal-link" href="#" target="_blank" style="display:none; margin-top:15px; padding:10px 20px; background:#2d3436; color:#fff; text-decoration:none; border-radius:20px; font-weight:bold;">Lichess'te Canlı Görüntüle 👁️</a>
+        <button onclick="canliSahayiKapat()" style="margin-bottom:10px; padding:10px 25px; background:#ff3366; color:#fff; border:none; border-radius:20px; cursor:pointer; font-weight:bold; font-size:16px;">✖ Sahayı Kapat</button>
+        <div id="canli-saha-bilgi" style="color: white; font-size: 18px; font-weight: bold;">Takım üyelerinin maçları aranıyor... 🔍</div>
+        
+        <div id="canli-board" style="display:none;"></div>
+        
+        <div id="mac-oyuncular" style="color:#e0e0e0; font-size:15px; font-weight:bold; margin-top:5px; display:none;"></div>
+        <a id="lichess-orijinal-link" href="#" target="_blank" style="display:none; margin-top:15px; padding:8px 18px; background:#2d3436; color:#fff; text-decoration:none; border-radius:20px; font-weight:bold; font-size:13px;">Lichess'te Aç 👁️</a>
     </div>
 
     <div id="karsilama">
@@ -247,7 +234,10 @@
             });
         }
 
-        let tumOyuncular = []; // Canlı saha için küresel veri
+        let tumOyuncular = [];
+        var liveBoard = null;
+        var liveGame = new Chess();
+        var streamInterval = null;
 
         document.getElementById('giris-butonu').addEventListener('click', function() {
             try { if (player && typeof player.playVideo === 'function') { player.setVolume(70); player.playVideo(); } } catch (e) {}
@@ -286,7 +276,7 @@
             })
             .then(res => res.json())
             .then(oyuncular => {
-                tumOyuncular = oyuncular; // Canlı maç araması için kaydet
+                tumOyuncular = oyuncular;
 
                 let blitzSiralama = [...oyuncular].sort((a, b) => ((b.perfs?.blitz?.rating || 0) - (a.perfs?.blitz?.rating || 0)));
                 
@@ -339,23 +329,25 @@
                 document.getElementById('rapid-liste').innerHTML = listeOlustur(rapidSiralama, 10, 'rapid');
                 document.getElementById('bullet-liste').innerHTML = listeOlustur(bulletSiralama, 10, 'bullet');
                 document.getElementById('toplam-liste').innerHTML = listeOlustur(macSiralama, 10, 'toplam');
-                document.getElementById('genel-liste').innerHTML = listeOlustur(blitzSiralama, 300, 'genel'); // Herkes listelenir
+                document.getElementById('genel-liste').innerHTML = listeOlustur(blitzSiralama, 300, 'genel');
             });
         }
 
-       // --- TAKIM İÇİ CANLI SAHA (MOR TEMA & ZORUNLU GÜNCELLEME) ---
+        // --- %100 ANLIK SİTE İÇİ CANLI SAHA MOTORU ---
         async function canliSahaAc() {
             document.getElementById('canli-saha-modal').style.display='flex';
-            let iframe = document.getElementById('canli-saha-iframe');
             let info = document.getElementById('canli-saha-bilgi');
+            let boardDiv = document.getElementById('canli-board');
+            let playersDiv = document.getElementById('mac-oyuncular');
             let linkBtn = document.getElementById('lichess-orijinal-link');
             
-            iframe.style.display = 'none';
+            boardDiv.style.display = 'none';
+            playersDiv.style.display = 'none';
             linkBtn.style.display = 'none';
             info.style.display = 'block';
-            info.innerText = "Takım üyelerinin maçları aranıyor... 🔍";
+            info.innerText = "Takım üyelerinin maçları taranıyor... 🔍";
 
-            if(tumOyuncular.length === 0) { info.innerText = "Lütfen bekleyin, veriler yükleniyor..."; return; }
+            if(tumOyuncular.length === 0) { info.innerText = "Veriler yükleniyor, lütfen bekleyin..."; return; }
 
             let ids = tumOyuncular.slice(0, 150).map(o => o.id).join(',');
             
@@ -366,20 +358,51 @@
                 let oynayanUser = statuses.find(s => s.playingId);
                 
                 if(oynayanUser) {
-                    info.style.display = 'none';
-                    iframe.style.display = 'block';
-                    iframe.src = `https://lichess.org/embed/game/${oynayanUser.playingId}?theme=purple&bg=dark`;
+                    let gameId = oynayanUser.playingId;
+                    info.innerText = "Canlı Yayın Bağlanıyor... ⚡";
                     
-                    // Lichess'te görüntüle butonunu aktif et
-                    linkBtn.href = `https://lichess.org/${oynayanUser.playingId}`;
-                    linkBtn.style.display = 'inline-block';
+                    if(!liveBoard) {
+                        liveBoard = Chessboard('canli-board', { position: 'start', pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png' });
+                    }
+
+                    // Her 1.5 Saniyede Bir Lichess'ten Anlık FEN (Hamle) Verisini Çek ve Tahtada Oynat
+                    if(streamInterval) clearInterval(streamInterval);
+                    
+                    let maciGuncelle = async () => {
+                        try {
+                            let gameRes = await fetch(`https://lichess.org/api/game/${gameId}`);
+                            let gameData = await gameRes.json();
+                            
+                            info.style.display = 'none';
+                            boardDiv.style.display = 'block';
+                            playersDiv.style.display = 'block';
+                            linkBtn.style.display = 'inline-block';
+
+                            playersDiv.innerHTML = `⚪ ${gameData.players.white.user?.name || 'Beyaz'} VS 🔴 ${gameData.players.black.user?.name || 'Siyah'}`;
+                            linkBtn.href = `https://lichess.org/${gameId}`;
+
+                            // Tahtayı ve kuralları taze FEN ile güncelle
+                            if(gameData.fen) {
+                                liveGame.load(gameData.fen);
+                                liveBoard.position(gameData.fen);
+                            }
+                        } catch(e) {}
+                    };
+
+                    maciGuncelle();
+                    streamInterval = setInterval(maciGuncelle, 1500); // 1.5 saniyede bir anlık canlı aktarım
+
                 } else {
-                    info.innerText = "Şu an takımda maç yapan kimse yok 😔 (Maç yeni başladıysa 15 sn sürebilir)";
+                    info.innerText = "Şu an takımda maç yapan kimse yok 😔 (Maç yeni başladıysa 10 sn bekleyip tekrar basın)";
                 }
-            } catch(e) {
-                info.innerText = "Bağlantı hatası oluştu.";
-            }
+            } catch(e) { info.innerText = "Bağlantı hatası oluştu."; }
         }
+
+        function canliSahayiKapat() {
+            document.getElementById('canli-saha-modal').style.display='none';
+            if(streamInterval) clearInterval(streamInterval); // Canlı yayını durdur
+        }
+
         // --- YAKLAŞAN TURNUVA SAYACI ---
         let guncelTurnuvaLinki = "https://lichess.org/team/ruby-spor-kulubu/tournaments";
         let turnuvaSayaciAraligi;
@@ -410,28 +433,21 @@
 
                     turnuvaSayaciAraligi = setInterval(() => {
                         let fark = yaklasanTurnuva.startsAt - Date.now();
-                        
                         if(fark <= 0) {
                             document.getElementById('turnuva-sayaci').innerText = "🔥 TURNUVA BAŞLADI! 🔥";
                             clearInterval(turnuvaSayaciAraligi);
                             return;
                         }
-                        
                         let gun = Math.floor(fark / (1000 * 60 * 60 * 24));
                         let saat = Math.floor((fark % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                         let dakika = Math.floor((fark % (1000 * 60 * 60)) / (1000 * 60));
                         let saniye = Math.floor((fark % (1000 * 60)) / 1000);
-                        
-                        let sayacMetni = "";
-                        if(gun > 0) sayacMetni += gun + " Gün ";
-                        sayacMetni += (saat < 10 ? "0"+saat : saat) + ":";
-                        sayacMetni += (dakika < 10 ? "0"+dakika : dakika) + ":";
-                        sayacMetni += (saniye < 10 ? "0"+saniye : saniye);
-                        
+                        let sayacMetni = ""; if(gun > 0) sayacMetni += gun + " Gün ";
+                        sayacMetni += (saat < 10 ? "0"+saat : saat) + ":" + (dakika < 10 ? "0"+dakika : dakika) + ":" + (saniye < 10 ? "0"+saniye : saniye);
                         document.getElementById('turnuva-sayaci').innerText = sayacMetni;
                     }, 1000);
                 }
-            }).catch(err => console.log("Turnuva çekilemedi", err));
+            }).catch(err => {});
         }
 
         function turnuvayaGit() { window.open(guncelTurnuvaLinki, '_blank'); }
@@ -444,17 +460,14 @@
         }
 
         async function generateCodeChallenge(codeVerifier) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(codeVerifier);
+            const encoder = new TextEncoder(); const data = encoder.encode(codeVerifier);
             const digest = await window.crypto.subtle.digest('SHA-256', data);
             return btoa(String.fromCharCode.apply(null, new Uint8Array(digest))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
         }
 
         async function lichessGirisYap() {
-            let verifier = generateRandomString(43);
-            localStorage.setItem("pkce_verifier", verifier);
+            let verifier = generateRandomString(43); localStorage.setItem("pkce_verifier", verifier);
             let challenge = await generateCodeChallenge(verifier);
-            
             let redirectUri = window.location.href.split('?')[0];
             let lichessUrl = `https://lichess.org/oauth?response_type=code&client_id=ruby-spor-kulubu&redirect_uri=${encodeURIComponent(redirectUri)}&code_challenge_method=S256&code_challenge=${challenge}`;
             window.location.href = lichessUrl;
@@ -464,7 +477,6 @@
             if (localStorage.getItem("ruby_aktif_kullanici") && localStorage.getItem("ruby_aktif_kullanici").startsWith("Sporcu_")) {
                 localStorage.removeItem("ruby_aktif_kullanici");
             }
-
             let urlParams = new URLSearchParams(window.location.search);
             let code = urlParams.get('code');
             let kayitliKullanici = localStorage.getItem("ruby_aktif_kullanici");
@@ -472,7 +484,6 @@
             if (code && !kayitliKullanici) {
                 let verifier = localStorage.getItem("pkce_verifier");
                 let redirectUri = window.location.href.split('?')[0];
-
                 try {
                     let tokenRes = await fetch('https://lichess.org/api/token', {
                         method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -499,7 +510,6 @@
                 setInterval(() => {
                     db.collection("online_uyeler").doc(kayitliKullanici).set({ kullaniciAdi: kayitliKullanici, sonSinir: Date.now() });
                 }, 5000);
-
                 db.collection("online_uyeler").doc(kayitliKullanici).set({ kullaniciAdi: kayitliKullanici, sonSinir: Date.now() });
             }
             onlineUyeleriDinle();
@@ -522,9 +532,6 @@
         }
 
         window.onload = function() { oturumKontrol(); };
-    </script>
-</body>
-</html>
     </script>
 </body>
 </html>
